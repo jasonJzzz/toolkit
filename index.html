@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="在浏览器中格式化 JSON、比较 JSON 和文本、转换 Unix 时间戳。">
+  <meta name="theme-color" content="#f8f7f3">
+  <title>Toolkit · 开发者工具箱</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./toolkit-core.js" defer></script>
+  <script src="./toolkit.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳到工具区</a>
+  <aside class="sidebar">
+    <a class="brand" href="#json-format" aria-label="Toolkit，返回 JSON 格式化">
+      <span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span><strong>Toolkit</strong><small>开发者工具箱</small></span>
+    </a>
+    <nav class="tools-nav" aria-label="工具导航">
+      <a href="#json-format" aria-current="page"><span class="nav-icon nav-code" aria-hidden="true">{ }</span>JSON 格式化</a>
+      <a href="#json-diff"><span class="nav-icon nav-diff" aria-hidden="true"></span>JSON Diff</a>
+      <a href="#text-diff"><span class="nav-icon nav-text" aria-hidden="true"></span>文本比较</a>
+      <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
+    </nav>
+    <div class="local-note"><span aria-hidden="true"></span>数据在浏览器内处理</div>
+  </aside>
+
+  <main id="workspace" class="workspace">
+    <section class="tool" id="tool-json-format" aria-labelledby="json-format-title">
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon" aria-hidden="true">{ }</span>
+          <h1 id="json-format-title">JSON 格式化</h1>
+        </div>
+        <p>校验、缩进或压缩 JSON，保留原始数字精度。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" id="format-json">格式化</button>
+        <button type="button" class="button" id="compact-json">压缩</button>
+        <label class="select-field" for="json-indent"><span>缩进</span><select id="json-indent"><option value="2">2 空格</option><option value="4">4 空格</option></select></label>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="format-example">载入示例</button>
+          <button type="button" class="button quiet" id="format-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid">
+        <div class="panel editor">
+          <div class="panel-head"><label for="json-input">原始 JSON</label></div>
+          <textarea id="json-input" spellcheck="false" placeholder="在这里粘贴 JSON…"></textarea>
+          <div class="panel-foot" id="json-input-count"></div>
+        </div>
+        <div class="panel editor">
+          <div class="panel-head"><label for="json-output">处理结果</label><button type="button" class="button small" data-copy="json-output" disabled>复制</button></div>
+          <textarea id="json-output" spellcheck="false" placeholder="格式化或压缩后的 JSON 会显示在这里。" readonly></textarea>
+          <div class="panel-foot" id="json-output-count"></div>
+        </div>
+      </div>
+      <p class="status" id="format-status" role="status"></p>
+    </section>
+
+    <section class="tool" id="tool-json-diff" aria-labelledby="json-diff-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon" aria-hidden="true">±</span>
+          <h1 id="json-diff-title">JSON Diff</h1>
+        </div>
+        <p>按字段路径查看新增、删除和修改。对象忽略键顺序，数组按索引比较。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" id="compare-json">比较 JSON</button>
+        <button type="button" class="button" id="json-swap">交换左右</button>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="json-example">载入示例</button>
+          <button type="button" class="button quiet" id="json-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid comparison-inputs">
+        <div class="panel editor">
+          <div class="panel-head"><label for="json-before">原始 JSON</label></div>
+          <textarea id="json-before" spellcheck="false" placeholder="粘贴修改前的 JSON…"></textarea>
+        </div>
+        <div class="panel editor">
+          <div class="panel-head"><label for="json-after">对比 JSON</label></div>
+          <textarea id="json-after" spellcheck="false" placeholder="粘贴修改后的 JSON…"></textarea>
+        </div>
+      </div>
+      <p class="status" id="json-status" role="status"></p>
+      <div class="panel result" id="json-result" hidden>
+        <div class="panel-head result-head"><h2>字段差异</h2><div class="summary" id="json-summary"></div></div>
+        <div id="json-changes"></div>
+      </div>
+    </section>
+
+    <section class="tool" id="tool-text-diff" aria-labelledby="text-diff-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon tool-symbol nav-text" aria-hidden="true"></span>
+          <h1 id="text-diff-title">文本比较</h1>
+        </div>
+        <p>逐行对比两段文本，定位变化并查看原文和对比文本的行号。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" id="compare-text">比较文本</button>
+        <button type="button" class="button" id="text-swap">交换左右</button>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="text-example">载入示例</button>
+          <button type="button" class="button quiet" id="text-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid comparison-inputs">
+        <div class="panel editor">
+          <div class="panel-head"><label for="text-before">原始文本</label></div>
+          <textarea id="text-before" spellcheck="false" placeholder="粘贴修改前的文本…"></textarea>
+        </div>
+        <div class="panel editor">
+          <div class="panel-head"><label for="text-after">对比文本</label></div>
+          <textarea id="text-after" spellcheck="false" placeholder="粘贴修改后的文本…"></textarea>
+        </div>
+      </div>
+      <p class="status" id="text-status" role="status"></p>
+      <div class="panel result" id="text-result" hidden>
+        <div class="panel-head result-head"><h2>逐行差异</h2><div class="summary" id="text-summary"></div></div>
+        <div class="line-scroll" id="text-lines" tabindex="0" aria-label="文本逐行差异"></div>
+      </div>
+    </section>
+
+    <section class="tool" id="tool-timestamp" aria-labelledby="timestamp-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon tool-symbol nav-clock" aria-hidden="true"></span>
+          <h1 id="timestamp-title">时间戳转换</h1>
+        </div>
+        <p>在 Unix 时间戳和日期时间之间转换，同时查看 UTC 与北京时间。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" id="timestamp-now">使用当前时间</button>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="timestamp-example">载入示例</button>
+          <button type="button" class="button quiet" id="timestamp-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid">
+        <form class="panel" id="timestamp-form">
+          <div class="panel-head"><h2>时间戳转日期</h2></div>
+          <div class="form-body">
+            <label for="timestamp-input">Unix 时间戳</label>
+            <input id="timestamp-input" type="text" spellcheck="false" placeholder="1704067200">
+            <label class="select-field" for="timestamp-unit"><span>单位</span><select id="timestamp-unit"><option value="auto">自动（按位数）</option><option value="seconds">秒</option><option value="milliseconds">毫秒</option></select></label>
+            <button class="button" type="submit">转换为日期</button>
+          </div>
+        </form>
+        <form class="panel" id="date-form">
+          <div class="panel-head"><h2>日期转时间戳</h2></div>
+          <div class="form-body">
+            <label for="date-input">日期时间</label>
+            <input id="date-input" type="text" spellcheck="false" placeholder="2024-01-01 08:00:00">
+            <label class="select-field" for="date-zone"><span>默认时区</span><select id="date-zone"><option value="480">北京时间 (UTC+08:00)</option><option value="0">UTC</option></select></label>
+            <button class="button" type="submit">转换为时间戳</button>
+          </div>
+        </form>
+      </div>
+      <p class="status" id="timestamp-status" role="status"></p>
+      <div class="panel result" id="timestamp-result" hidden>
+        <div class="panel-head"><h2>转换结果</h2></div>
+        <dl class="time-results">
+          <div><dt>时间戳（秒）</dt><dd><span id="time-seconds"></span><button class="button small" type="button" data-copy="time-seconds">复制</button></dd></div>
+          <div><dt>时间戳（毫秒）</dt><dd><span id="time-milliseconds"></span><button class="button small" type="button" data-copy="time-milliseconds">复制</button></dd></div>
+          <div><dt>UTC</dt><dd><span id="time-utc"></span><button class="button small" type="button" data-copy="time-utc">复制</button></dd></div>
+          <div><dt>北京时间</dt><dd><span id="time-beijing"></span><button class="button small" type="button" data-copy="time-beijing">复制</button></dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
