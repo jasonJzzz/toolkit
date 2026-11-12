@@ -217,21 +217,12 @@ const toolkitCore = (() => {
     return changes;
   }
 
-  function compareText(before, after) {
-    const lines = (text) => text === '' ? [] : text.split(/\r\n?|\n/);
-    const left = lines(before);
-    const right = lines(after);
-    const rows = [];
+  function alignSequences(left, right, limit) {
+    const pairs = [];
     let i = 0;
     let j = 0;
-    const addRow = (type) => {
-      const row = { type, oldLine: '', newLine: '', text: type === 'added' ? right[j] : left[i] };
-      if (type !== 'added') row.oldLine = ++i;
-      if (type !== 'removed') row.newLine = ++j;
-      rows.push(row);
-    };
 
-    while (i < left.length && j < right.length && left[i] === right[j]) addRow('same');
+    while (i < left.length && j < right.length && left[i] === right[j]) pairs.push([i++, j++]);
 
     let leftEnd = left.length;
     let rightEnd = right.length;
@@ -244,8 +235,9 @@ const toolkitCore = (() => {
     const newCount = rightEnd - j;
     const width = newCount + 1;
     const cells = (oldCount + 1) * width;
-    const simplified = oldCount > 0 && newCount > 0 && cells > maxAlignmentCells;
-    if (oldCount > 0 && newCount > 0 && !simplified) {
+    const hasMiddle = oldCount > 0 && newCount > 0;
+    const simplified = hasMiddle && cells > limit;
+    if (hasMiddle && !simplified) {
       const startI = i;
       const startJ = j;
       const matches = new Uint32Array(cells);
@@ -260,15 +252,108 @@ const toolkitCore = (() => {
 
       while (i < leftEnd && j < rightEnd) {
         const cell = (i - startI) * width + j - startJ;
-        if (left[i] === right[j]) addRow('same');
-        else if (matches[cell + width] >= matches[cell + 1]) addRow('removed');
-        else addRow('added');
+        if (left[i] === right[j]) pairs.push([i++, j++]);
+        else if (matches[cell + width] >= matches[cell + 1]) pairs.push([i++, null]);
+        else pairs.push([null, j++]);
       }
     }
-    while (i < leftEnd) addRow('removed');
-    while (j < rightEnd) addRow('added');
-    while (i < left.length) addRow('same');
-    return { rows, simplified };
+
+    while (i < leftEnd) pairs.push([i++, null]);
+    while (j < rightEnd) pairs.push([null, j++]);
+    while (i < left.length) pairs.push([i++, j++]);
+    return { pairs, simplified, cellsUsed: hasMiddle && !simplified ? cells : 0 };
+  }
+
+  function lineDiffSegments(before, after, options, limit) {
+    function readCharacters(text) {
+      const characters = Array.from(text);
+      const positions = [];
+      const keys = [];
+      for (const [index, character] of characters.entries()) {
+        if (options.ignoreWhitespace && /\s/.test(character)) continue;
+        positions.push(index);
+        keys.push(options.ignoreCase ? character.toLowerCase() : character);
+      }
+      return { characters, positions, keys };
+    }
+
+    function groupCharacters(characters, changedPositions) {
+      const segments = [];
+      for (const [index, character] of characters.entries()) {
+        const changed = changedPositions.has(index);
+        const previous = segments.at(-1);
+        if (previous?.changed === changed) previous.text += character;
+        else segments.push({ text: character, changed });
+      }
+      return segments;
+    }
+
+    const left = readCharacters(before);
+    const right = readCharacters(after);
+    const { pairs, simplified, cellsUsed } = alignSequences(left.keys, right.keys, limit);
+    const removed = new Set();
+    const added = new Set();
+    for (const [i, j] of pairs) {
+      if (j === null) removed.add(left.positions[i]);
+      if (i === null) added.add(right.positions[j]);
+    }
+
+    return {
+      before: groupCharacters(left.characters, removed),
+      after: groupCharacters(right.characters, added),
+      simplified,
+      cellsUsed,
+    };
+  }
+
+  function compareText(before, after, options = {}) {
+    function readLines(text) {
+      if (text === '') return [];
+      const lines = text.split(/\r\n?|\n/).map((value, index) => {
+        let key = options.ignoreWhitespace ? value.replace(/\s+/g, '') : value;
+        if (options.ignoreCase) key = key.toLowerCase();
+        return { text: value, number: index + 1, key };
+      });
+      return options.ignoreWhitespace ? lines.filter(({ key }) => key !== '') : lines;
+    }
+
+    const left = readLines(before);
+    const right = readLines(after);
+    const { pairs, simplified } = alignSequences(
+      left.map(({ key }) => key), right.map(({ key }) => key), maxAlignmentCells,
+    );
+    const rows = [];
+    let inlineBudget = maxAlignmentCells;
+    let inlineSimplified = false;
+    let removed = [];
+    let added = [];
+
+    function appendChanges() {
+      const pairedCount = simplified ? 0 : Math.min(removed.length, added.length);
+      for (let index = 0; index < pairedCount; index++) {
+        const oldLine = removed[index];
+        const newLine = added[index];
+        const segments = lineDiffSegments(oldLine.text, newLine.text, options, Math.min(inlineBudget, 160_000));
+        inlineBudget -= segments.cellsUsed;
+        inlineSimplified ||= segments.simplified;
+        rows.push({ type: 'changed', oldLine, newLine, before: segments.before, after: segments.after });
+      }
+      for (const oldLine of removed.slice(pairedCount)) rows.push({ type: 'removed', oldLine });
+      for (const newLine of added.slice(pairedCount)) rows.push({ type: 'added', newLine });
+      removed = [];
+      added = [];
+    }
+
+    for (const [i, j] of pairs) {
+      if (i === null) added.push(right[j]);
+      else if (j === null) removed.push(left[i]);
+      else {
+        appendChanges();
+        rows.push({ type: 'same', oldLine: left[i], newLine: right[j] });
+      }
+    }
+    appendChanges();
+    return { rows, simplified, inlineSimplified };
   }
 
   function asMilliseconds(value) {

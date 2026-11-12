@@ -72,28 +72,67 @@ function renderJsonDiff() {
 
 function renderTextDiff() {
   clearComparison('text');
-  const { rows, simplified } = toolkitCore.compareText($('text-before').value, $('text-after').value);
-  if (!rows.length) {
+  const before = $('text-before').value;
+  const after = $('text-after').value;
+  if (!before && !after) {
     status('text-status', '请先输入需要比较的文本。', true);
     return;
   }
-  appendSummary('text-summary', ['added', 'removed', 'same'], rows);
-  const fragment = document.createDocumentFragment();
-  for (const row of rows) {
-    const line = makeElement('div', 'line ' + row.type);
-    const oldNumber = makeElement('span', 'line-number', row.oldLine);
-    const newNumber = makeElement('span', 'line-number', row.newLine);
-    const marker = makeElement('span', 'line-marker', { added: '+', removed: '−', same: ' ' }[row.type]);
-    if (row.oldLine) oldNumber.setAttribute('aria-label', '原文第 ' + row.oldLine + ' 行');
-    if (row.newLine) newNumber.setAttribute('aria-label', '对比文本第 ' + row.newLine + ' 行');
-    marker.setAttribute('aria-label', changeLabels[row.type]);
-    line.append(oldNumber, newNumber, marker, makeElement('span', 'line-text', row.text));
-    fragment.append(line);
+
+  const { rows, simplified, inlineSimplified } = toolkitCore.compareText(before, after, {
+    ignoreCase: $('text-ignore-case').checked,
+    ignoreWhitespace: $('text-ignore-whitespace').checked,
+  });
+  const changes = rows.filter(({ type }) => type !== 'same');
+  const visibleRows = $('text-only-changes').checked ? changes : rows;
+  appendSummary('text-summary', ['changed', 'added', 'removed', 'same'], rows);
+
+  function appendSide(row, line, segments, tone, label) {
+    const number = makeElement('td', 'diff-number ' + tone, line?.number);
+    const cell = makeElement('td', 'diff-text ' + tone);
+    if (line) {
+      number.setAttribute('aria-label', label + '第 ' + line.number + ' 行');
+      if (segments) {
+        for (const segment of segments) {
+          cell.append(segment.changed ? makeElement('mark', '', segment.text) : document.createTextNode(segment.text));
+        }
+      } else {
+        cell.textContent = line.text;
+      }
+    }
+    row.append(number, cell);
   }
+
+  const fragment = document.createDocumentFragment();
+  for (const row of visibleRows) {
+    const entry = makeElement('tr', 'diff-row ' + row.type);
+    const beforeTone = row.oldLine ? (row.type === 'same' ? '' : 'removed') : 'diff-gap';
+    const afterTone = row.newLine ? (row.type === 'same' ? '' : 'added') : 'diff-gap';
+    appendSide(entry, row.oldLine, row.before, beforeTone, '原文');
+    appendSide(entry, row.newLine, row.after, afterTone, '对比文本');
+    fragment.append(entry);
+  }
+  if (!visibleRows.length) {
+    const empty = makeElement('tr', '');
+    const message = makeElement('td', 'empty-result', '当前选项下没有差异。');
+    message.colSpan = 4;
+    empty.append(message);
+    fragment.append(empty);
+  }
+
   $('text-lines').replaceChildren(fragment);
+  $('text-result-scroll').scrollTop = 0;
   $('text-result').hidden = false;
-  const message = simplified ? '变动区过长，已按整段替换显示。' : '比较完成。';
+  let message = changes.length ? '找到 ' + changes.length + ' 行差异。' : '当前选项下没有差异。';
+  if (simplified) message += '文本较长，部分变动按整段显示。';
+  if (inlineSimplified) message += '部分长行的行内高亮已简化。';
   status('text-status', message);
+}
+
+for (const option of ['text-ignore-case', 'text-ignore-whitespace', 'text-only-changes']) {
+  $(option).addEventListener('change', () => {
+    if (!$('text-result').hidden) renderTextDiff();
+  });
 }
 
 function clearComparison(id) {

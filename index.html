@@ -101,11 +101,16 @@
           <span class="tool-icon tool-symbol nav-text" aria-hidden="true"></span>
           <h1 id="text-diff-title">文本比较</h1>
         </div>
-        <p>逐行对比两段文本，定位变化并查看原文和对比文本的行号。</p>
+        <p>左右对齐原文和新文本，显示各自的行号，并高亮行内变化。</p>
       </header>
       <div class="actions">
         <button type="button" class="button primary" id="compare-text">比较文本</button>
         <button type="button" class="button" id="text-swap">交换左右</button>
+        <div class="text-options" role="group" aria-label="文本比较选项">
+          <label><input type="checkbox" id="text-ignore-case">忽略大小写</label>
+          <label><input type="checkbox" id="text-ignore-whitespace">忽略空白</label>
+          <label><input type="checkbox" id="text-only-changes">只显示差异</label>
+        </div>
         <div class="trailing">
           <button type="button" class="button quiet" id="text-example">载入示例</button>
           <button type="button" class="button quiet" id="text-clear">清空</button>
@@ -123,8 +128,15 @@
       </div>
       <p class="status" id="text-status" role="status"></p>
       <div class="panel result" id="text-result" hidden>
-        <div class="panel-head result-head"><h2>逐行差异</h2><div class="summary" id="text-summary"></div></div>
-        <div class="line-scroll" id="text-lines" tabindex="0" aria-label="文本逐行差异"></div>
+        <div class="panel-head result-head"><h2>对照结果</h2><div class="summary" id="text-summary"></div></div>
+        <div class="line-scroll" id="text-result-scroll" tabindex="0" aria-label="左右对照结果">
+          <table class="text-diff-table" aria-label="文本差异">
+            <colgroup><col class="diff-line-col"><col></colgroup>
+            <colgroup><col class="diff-line-col"><col></colgroup>
+            <thead><tr><th colspan="2" scope="colgroup">原始文本</th><th colspan="2" scope="colgroup">对比文本</th></tr></thead>
+            <tbody id="text-lines"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
