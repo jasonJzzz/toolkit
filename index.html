@@ -33,26 +33,28 @@
           <span class="tool-icon" aria-hidden="true">{ }</span>
           <h1 id="json-format-title">JSON 格式化</h1>
         </div>
-        <p>校验、缩进或压缩 JSON，保留原始数字精度。</p>
+        <p>格式化或压缩 JSON，也可以解码数据库里以字符串保存的 JSON。</p>
       </header>
       <div class="actions">
         <button type="button" class="button primary" id="format-json">格式化</button>
         <button type="button" class="button" id="compact-json">压缩</button>
+        <button type="button" class="button" id="decode-json">解码并格式化</button>
         <label class="select-field" for="json-indent"><span>缩进</span><select id="json-indent"><option value="2">2 空格</option><option value="4">4 空格</option></select></label>
         <div class="trailing">
           <button type="button" class="button quiet" id="format-example">载入示例</button>
+          <button type="button" class="button quiet" id="decode-example">转义示例</button>
           <button type="button" class="button quiet" id="format-clear">清空</button>
         </div>
       </div>
       <div class="editor-grid">
         <div class="panel editor">
-          <div class="panel-head"><label for="json-input">原始 JSON</label></div>
-          <textarea id="json-input" spellcheck="false" placeholder="在这里粘贴 JSON…"></textarea>
+          <div class="panel-head"><label for="json-input">原始内容</label></div>
+          <textarea id="json-input" spellcheck="false" placeholder="粘贴 JSON 或带转义的字段值…"></textarea>
           <div class="panel-foot" id="json-input-count"></div>
         </div>
         <div class="panel editor">
           <div class="panel-head"><label for="json-output">处理结果</label><button type="button" class="button small" data-copy="json-output" disabled>复制</button></div>
-          <textarea id="json-output" spellcheck="false" placeholder="格式化或压缩后的 JSON 会显示在这里。" readonly></textarea>
+          <textarea id="json-output" spellcheck="false" placeholder="处理结果会显示在这里。" readonly></textarea>
           <div class="panel-foot" id="json-output-count"></div>
         </div>
       </div>

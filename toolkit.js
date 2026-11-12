@@ -140,10 +140,18 @@ function refreshFormatCounts() {
   formatCopy.disabled = formatOutput.value === '';
 }
 
-function formatJson(indent) {
+function formatJson(indent, decode = false) {
   try {
-    formatOutput.value = toolkitCore.formatJson(formatInput.value, indent);
-    status('format-status', indent ? 'JSON 校验通过，已格式化。' : 'JSON 校验通过，已压缩。');
+    if (decode) {
+      const result = toolkitCore.decodeJsonString(formatInput.value, indent);
+      formatOutput.value = result.output;
+      let message = result.kind === 'text' ? '已解码为文本。' : '已解码并格式化 JSON。';
+      if (result.expanded) message += '已展开 ' + result.expanded + ' 处内层 JSON。';
+      status('format-status', message);
+    } else {
+      formatOutput.value = toolkitCore.formatJson(formatInput.value, indent);
+      status('format-status', indent ? 'JSON 校验通过，已格式化。' : 'JSON 校验通过，已压缩。');
+    }
   } catch (error) {
     formatOutput.value = '';
     status('format-status', error.message, true);
@@ -153,6 +161,13 @@ function formatJson(indent) {
 
 $('format-json').addEventListener('click', () => formatJson(Number($('json-indent').value)));
 $('compact-json').addEventListener('click', () => formatJson(0));
+$('decode-json').addEventListener('click', () => formatJson(Number($('json-indent').value), true));
+$('decode-example').addEventListener('click', () => {
+  const rawResult = JSON.stringify({ is_sensitive: false, evidence: ['示例文本'] }, null, 2);
+  const imageResults = JSON.stringify([{ resourceId: 'CONTENT_PIC_1', rawResult }]);
+  formatInput.value = JSON.stringify(imageResults);
+  formatJson(Number($('json-indent').value), true);
+});
 $('format-example').addEventListener('click', () => {
   formatInput.value = '{"id":9007199254740993,"items":[{"sku":"SKU-001","quantity":100}],"approved":false}';
   formatJson(Number($('json-indent').value));

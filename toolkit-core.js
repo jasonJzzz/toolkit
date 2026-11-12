@@ -22,7 +22,10 @@ const toolkitCore = (() => {
   }
 
   function formatJson(source, indentation = 2) {
-    const tokens = jsonTokens(source);
+    return formatTokens(jsonTokens(source), indentation);
+  }
+
+  function formatTokens(tokens, indentation) {
     if (indentation === 0) return tokens.join('');
 
     const indent = ' '.repeat(indentation);
@@ -47,6 +50,67 @@ const toolkitCore = (() => {
       }
     }
     return parts.join('');
+  }
+
+  function readJsonContainer(source) {
+    let candidate = source.trim();
+
+    while (candidate.startsWith('{') || candidate.startsWith('[') || candidate.startsWith('"')) {
+      try {
+        if (candidate.startsWith('"')) {
+          candidate = JSON.parse(candidate).trim();
+          continue;
+        }
+        return jsonTokens(candidate);
+      } catch {
+        if (!candidate.includes('\\')) return null;
+        try {
+          // Some database viewers copy the escaped value without its outer quotes.
+          candidate = JSON.parse('"' + candidate + '"').trim();
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  function decodeJsonString(source, indentation = 2) {
+    if (!source.trim()) throw new Error('请先粘贴需要解码的字段值。');
+
+    let tokens;
+    try {
+      tokens = jsonTokens(source);
+    } catch {
+      tokens = readJsonContainer(source);
+      if (!tokens) throw new Error('无法解码，请粘贴完整字段值（不含字段名），并检查引号和转义。');
+    }
+
+    if (tokens[0].startsWith('"')) {
+      const value = JSON.parse(tokens[0]);
+      tokens = readJsonContainer(value);
+      if (!tokens) return { output: value, kind: 'text', expanded: 0 };
+    }
+
+    const outputTokens = [];
+    let expanded = 0;
+    function expandValues(values) {
+      for (let index = 0; index < values.length; index++) {
+        const token = values[index];
+        if (token.startsWith('"') && values[index + 1] !== ':') {
+          const inner = readJsonContainer(JSON.parse(token));
+          if (inner) {
+            expanded++;
+            expandValues(inner);
+            continue;
+          }
+        }
+        outputTokens.push(token);
+      }
+    }
+
+    expandValues(tokens);
+    return { output: formatTokens(outputTokens, indentation), kind: 'json', expanded };
   }
 
   function parseForComparison(source) {
@@ -272,5 +336,5 @@ const toolkitCore = (() => {
     };
   }
 
-  return { formatJson, compareJson, compareText, parseTimestamp, parseDate, describeTime };
+  return { formatJson, decodeJsonString, compareJson, compareText, parseTimestamp, parseDate, describeTime };
 })();
