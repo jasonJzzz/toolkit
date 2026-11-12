@@ -56,9 +56,7 @@ button:disabled { cursor: default; opacity: .48; }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; width: fit-content; }
 .brand strong { display: block; font-size: 24px; line-height: 1.2; font-weight: 750; letter-spacing: -.05em; }
 .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; letter-spacing: .08em; }
-.brand-icon { display: grid; grid-template-columns: repeat(2, 6px); place-content: center; gap: 3px; width: 40px; height: 40px; border-radius: 10px; background: var(--accent); }
-.brand-icon i { height: 6px; border: 1px solid #e3ebdd; border-radius: 1.5px; }
-.brand-icon i:last-child { background: #e3ebdd; }
+.brand-icon { display: block; flex: none; width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
 
 .tools-nav { display: grid; gap: 5px; margin-top: 43px; }
 .tools-nav a {
@@ -126,6 +124,7 @@ button:disabled { cursor: default; opacity: .48; }
   font: 13px/1.65 var(--mono);
   tab-size: 2;
 }
+.format-editors textarea { height: clamp(400px, 58vh, 760px); min-height: 200px; }
 .editor textarea:focus-visible { outline-offset: -3px; }
 .editor textarea::placeholder { color: #74786d; }
 .editor textarea[readonly] { background: #fcfcfa; }
@@ -192,6 +191,7 @@ code, .line, .time-results dd { font-family: var(--mono); }
   .tool-icon { flex-basis: 35px; height: 35px; }
   .editor-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .editor textarea { min-height: 180px; }
+  .format-editors textarea { height: clamp(240px, 44vh, 500px); }
   .time-results > div { grid-template-columns: 93px minmax(0, 1fr); padding-inline: 10px; gap: 6px; }
 }
 

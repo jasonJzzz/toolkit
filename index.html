@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="在浏览器中格式化 JSON、比较 JSON 和文本、转换 Unix 时间戳。">
   <meta name="theme-color" content="#f8f7f3">
-  <title>Toolkit · 开发者工具箱</title>
+  <title>杂七杂八的工具箱</title>
+  <link rel="icon" type="image/jpeg" href="./assets/tu3.jpg">
   <link rel="stylesheet" href="./styles.css">
   <script src="./toolkit-core.js" defer></script>
   <script src="./toolkit.js" defer></script>
@@ -14,8 +15,8 @@
   <a class="skip-link" href="#workspace">跳到工具区</a>
   <aside class="sidebar">
     <a class="brand" href="#json-format" aria-label="Toolkit，返回 JSON 格式化">
-      <span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      <span><strong>Toolkit</strong><small>开发者工具箱</small></span>
+      <img class="brand-icon" src="./assets/tu3.jpg" alt="" width="40" height="40">
+      <span><strong>Toolkit</strong><small>杂七杂八的工具箱</small></span>
     </a>
     <nav class="tools-nav" aria-label="工具导航">
       <a href="#json-format" aria-current="page"><span class="nav-icon nav-code" aria-hidden="true">{ }</span>JSON 格式化</a>
@@ -46,7 +47,7 @@
           <button type="button" class="button quiet" id="format-clear">清空</button>
         </div>
       </div>
-      <div class="editor-grid">
+      <div class="editor-grid format-editors">
         <div class="panel editor">
           <div class="panel-head"><label for="json-input">原始内容</label></div>
           <textarea id="json-input" spellcheck="false" placeholder="粘贴 JSON 或带转义的字段值…"></textarea>

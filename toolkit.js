@@ -5,6 +5,10 @@ const tools = Array.from(document.querySelectorAll('.tool'));
 const navigation = Array.from(document.querySelectorAll('.tools-nav a'));
 const changeLabels = { added: '新增', removed: '删除', changed: '修改', same: '相同' };
 
+const brandIcon = './assets/tu' + (Math.floor(Math.random() * 3) + 1) + '.jpg';
+document.querySelector('link[rel="icon"]').href = brandIcon;
+document.querySelector('.brand-icon').src = brandIcon;
+
 function showTool() {
   const route = window.location.hash.slice(1);
   if (route === 'workspace') return;
@@ -14,7 +18,6 @@ function showTool() {
     if (link.hash === '#' + active.id.slice(5)) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
-  document.title = active.querySelector('h1').textContent + ' · Toolkit';
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', showTool);
@@ -131,6 +134,21 @@ for (const [id, example] of Object.entries(compareExamples)) {
 const formatInput = $('json-input');
 const formatOutput = $('json-output');
 const formatCopy = document.querySelector('[data-copy="json-output"]');
+
+const formatEditors = [formatInput, formatOutput];
+let editorHeight = '';
+const formatResizeObserver = new ResizeObserver((entries) => {
+  const resized = entries.find(({ target }) => target.style.height && target.style.height !== editorHeight);
+  if (!resized) return;
+
+  editorHeight = resized.target.style.height;
+  requestAnimationFrame(() => {
+    for (const editor of formatEditors) {
+      if (editor.style.height !== editorHeight) editor.style.height = editorHeight;
+    }
+  });
+});
+for (const editor of formatEditors) formatResizeObserver.observe(editor);
 
 function refreshFormatCounts() {
   for (const input of [formatInput, formatOutput]) {
