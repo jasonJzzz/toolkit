@@ -113,6 +113,11 @@ const toolkitCore = (() => {
     return { output: formatTokens(outputTokens, indentation), kind: 'json', expanded };
   }
 
+  function restoreTextWhitespace(source) {
+    const escapes = { '\\': '\\', n: '\n', r: '\n', 'r\\n': '\n', t: '\t' };
+    return source.replace(/\\(r\\n|[\\nrt])/g, (_, escape) => escapes[escape]);
+  }
+
   function parseForComparison(source) {
     const tokens = jsonTokens(source);
     let index = 0;
@@ -449,5 +454,5 @@ const toolkitCore = (() => {
     };
   }
 
-  return { formatJson, decodeJsonString, compareJson, compareText, convertUnicode, parseTimestamp, parseDate, describeTime };
+  return { formatJson, decodeJsonString, restoreTextWhitespace, compareJson, compareText, convertUnicode, parseTimestamp, parseDate, describeTime };
 })();

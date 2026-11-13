@@ -174,20 +174,22 @@ const formatInput = $('json-input');
 const formatOutput = $('json-output');
 const formatCopy = document.querySelector('[data-copy="json-output"]');
 
-const formatEditors = [formatInput, formatOutput];
-let editorHeight = '';
-const formatResizeObserver = new ResizeObserver((entries) => {
-  const resized = entries.find(({ target }) => target.style.height && target.style.height !== editorHeight);
-  if (!resized) return;
+for (const grid of document.querySelectorAll('.format-editors')) {
+  const editors = grid.querySelectorAll('textarea');
+  let editorHeight = '';
+  const observer = new ResizeObserver((entries) => {
+    const resized = entries.find(({ target }) => target.style.height && target.style.height !== editorHeight);
+    if (!resized) return;
 
-  editorHeight = resized.target.style.height;
-  requestAnimationFrame(() => {
-    for (const editor of formatEditors) {
-      if (editor.style.height !== editorHeight) editor.style.height = editorHeight;
-    }
+    editorHeight = resized.target.style.height;
+    requestAnimationFrame(() => {
+      for (const editor of editors) {
+        if (editor.style.height !== editorHeight) editor.style.height = editorHeight;
+      }
+    });
   });
-});
-for (const editor of formatEditors) formatResizeObserver.observe(editor);
+  for (const editor of editors) observer.observe(editor);
+}
 
 function refreshFormatCounts() {
   for (const input of [formatInput, formatOutput]) {
@@ -242,6 +244,41 @@ function clearFormatOutput() {
 }
 formatInput.addEventListener('input', clearFormatOutput);
 refreshFormatCounts();
+
+const textFormatInput = $('text-format-input');
+const textFormatOutput = $('text-format-output');
+const textFormatCopy = document.querySelector('[data-copy="text-format-output"]');
+
+function clearTextFormatOutput() {
+  textFormatOutput.value = '';
+  textFormatCopy.disabled = true;
+  status('text-format-status');
+}
+
+function formatPlainText() {
+  const source = textFormatInput.value;
+  if (source === '') {
+    status('text-format-status', '请先粘贴需要处理的文本。', true);
+    return;
+  }
+
+  const output = toolkitCore.restoreTextWhitespace(source);
+  textFormatOutput.value = output;
+  textFormatCopy.disabled = false;
+  status('text-format-status', output === source ? '未找到需要还原的转义。' : '已还原文本转义。');
+}
+
+$('format-text').addEventListener('click', formatPlainText);
+textFormatInput.addEventListener('input', clearTextFormatOutput);
+$('text-format-example').addEventListener('click', () => {
+  textFormatInput.value = '大家好！\\n\\n这是第二段。\\r\\n姓名\\t部门';
+  formatPlainText();
+});
+$('text-format-clear').addEventListener('click', () => {
+  textFormatInput.value = '';
+  clearTextFormatOutput();
+  textFormatInput.focus();
+});
 
 function clearTimeResult() {
   $('timestamp-result').hidden = true;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="在浏览器中格式化 JSON、比较文本、转换时间戳和 Unicode、识别图片中的二维码。">
+  <meta name="description" content="在浏览器中格式化 JSON 和文本、比较文本、转换时间戳和 Unicode、识别图片中的二维码。">
   <meta name="theme-color" content="#f8f7f3">
   <title>杂七杂八的工具箱</title>
   <link rel="icon" type="image/jpeg" href="./assets/tu3.jpg">
@@ -22,6 +22,7 @@
     <nav class="tools-nav" aria-label="工具导航">
       <a href="#json-format" aria-current="page"><span class="nav-icon nav-code" aria-hidden="true">{ }</span>JSON 格式化</a>
       <a href="#json-diff"><span class="nav-icon nav-diff" aria-hidden="true"></span>JSON Diff</a>
+      <a href="#text-format"><span class="nav-icon nav-code" aria-hidden="true">\n</span>文本格式化</a>
       <a href="#text-diff"><span class="nav-icon nav-text" aria-hidden="true"></span>文本比较</a>
       <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
       <a href="#unicode"><span class="nav-icon nav-code" aria-hidden="true">U+</span>Unicode 转码</a>
@@ -96,6 +97,34 @@
         <div class="panel-head result-head"><h2>字段差异</h2><div class="summary" id="json-summary"></div></div>
         <div id="json-changes"></div>
       </div>
+    </section>
+
+    <section class="tool" id="tool-text-format" aria-labelledby="text-format-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon" aria-hidden="true">\n</span>
+          <h1 id="text-format-title">文本格式化</h1>
+        </div>
+        <p>将普通文本里的 <code>\n</code>、<code>\r\n</code> 还原成换行，<code>\t</code> 还原成制表符。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" id="format-text">还原换行和制表符</button>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="text-format-example">载入示例</button>
+          <button type="button" class="button quiet" id="text-format-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid format-editors">
+        <div class="panel editor">
+          <div class="panel-head"><label for="text-format-input">原始文本</label></div>
+          <textarea id="text-format-input" spellcheck="false" placeholder="粘贴带 \n 的文本，例如：大家好！\n\n这是第二段。"></textarea>
+        </div>
+        <div class="panel editor">
+          <div class="panel-head"><label for="text-format-output">处理结果</label><button type="button" class="button small" data-copy="text-format-output" disabled>复制</button></div>
+          <textarea id="text-format-output" spellcheck="false" placeholder="还原后的文本会显示在这里。" readonly></textarea>
+        </div>
+      </div>
+      <p class="status" id="text-format-status" role="status"></p>
     </section>
 
     <section class="tool" id="tool-text-diff" aria-labelledby="text-diff-title" hidden>
