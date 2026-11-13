@@ -282,7 +282,8 @@ $('timestamp-now').addEventListener('click', () => {
   const time = Date.now();
   $('timestamp-input').value = String(time);
   $('timestamp-unit').value = 'milliseconds';
-  $('date-input').value = new Date(time).toISOString();
+  $('date-input').value = new Date(time).toISOString().split('.')[0].replace('T', ' ');
+  $('date-zone').value = '0';
   showTime(time, '已读取当前时间。');
 });
 $('timestamp-example').addEventListener('click', () => {
