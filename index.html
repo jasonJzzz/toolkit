@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="在浏览器中格式化 JSON、比较 JSON 和文本、转换 Unix 时间戳。">
+  <meta name="description" content="在浏览器中格式化 JSON、比较文本、转换时间戳和 Unicode、识别图片中的二维码。">
   <meta name="theme-color" content="#f8f7f3">
   <title>杂七杂八的工具箱</title>
   <link rel="icon" type="image/jpeg" href="./assets/tu3.jpg">
   <link rel="stylesheet" href="./styles.css">
   <script src="./toolkit-core.js" defer></script>
+  <script src="./assets/vendor/jsqr/jsQR.js" defer></script>
   <script src="./toolkit.js" defer></script>
 </head>
 <body>
@@ -23,6 +24,8 @@
       <a href="#json-diff"><span class="nav-icon nav-diff" aria-hidden="true"></span>JSON Diff</a>
       <a href="#text-diff"><span class="nav-icon nav-text" aria-hidden="true"></span>文本比较</a>
       <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
+      <a href="#unicode"><span class="nav-icon nav-code" aria-hidden="true">U+</span>Unicode 转码</a>
+      <a href="#qr-extract"><span class="nav-icon nav-qr" aria-hidden="true"></span>二维码提取</a>
     </nav>
     <div class="local-note"><span aria-hidden="true"></span>数据在浏览器内处理</div>
   </aside>
@@ -185,6 +188,61 @@
           <div><dt>北京时间</dt><dd><span id="time-beijing"></span><button class="button small" type="button" data-copy="time-beijing">复制</button></dd></div>
         </dl>
       </div>
+    </section>
+    <section class="tool" id="tool-unicode" aria-labelledby="unicode-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon" aria-hidden="true">U+</span>
+          <h1 id="unicode-title">Unicode 转码</h1>
+        </div>
+        <p>在文本和 Unicode 转义之间转换，例如「中文」和 <code>\u4E2D\u6587</code>。</p>
+      </header>
+      <div class="actions">
+        <button type="button" class="button primary" data-unicode="encode">文本转 Unicode</button>
+        <button type="button" class="button" data-unicode="decode">Unicode 转文本</button>
+        <button type="button" class="button" data-unicode="encode-ascii">ASCII 转 Unicode</button>
+        <button type="button" class="button" data-unicode="decode-ascii">Unicode 转 ASCII</button>
+        <div class="trailing">
+          <button type="button" class="button quiet" id="unicode-example">载入示例</button>
+          <button type="button" class="button quiet" id="unicode-clear">清空</button>
+        </div>
+      </div>
+      <div class="editor-grid comparison-inputs unicode-editors">
+        <div class="panel editor">
+          <div class="panel-head"><label for="unicode-input">原始内容</label></div>
+          <textarea id="unicode-input" spellcheck="false" placeholder="粘贴中文、ASCII 文本或 Unicode 转义…"></textarea>
+        </div>
+        <div class="panel editor">
+          <div class="panel-head"><h2 id="unicode-output-title">转换结果</h2><button type="button" class="button small" data-copy="unicode-output" disabled>复制</button></div>
+          <pre id="unicode-output" class="raw-output unicode-output" aria-labelledby="unicode-output-title" tabindex="0"></pre>
+        </div>
+      </div>
+      <p class="status" id="unicode-status" role="status"></p>
+    </section>
+
+    <section class="tool" id="tool-qr-extract" aria-labelledby="qr-extract-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon nav-qr" aria-hidden="true"></span>
+          <h1 id="qr-extract-title">二维码提取</h1>
+        </div>
+        <p>选择包含二维码的图片，在浏览器内识别并复制原始内容。</p>
+      </header>
+      <div class="editor-grid">
+        <div class="panel">
+          <div class="panel-head"><label for="qr-file">选择图片</label><button type="button" class="button small" id="qr-clear" disabled>清空</button></div>
+          <div class="qr-image-body">
+            <input id="qr-file" type="file" accept="image/*">
+            <img id="qr-preview" alt="所选图片预览" hidden>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2 id="qr-output-title">二维码原始内容</h2><button type="button" class="button small" data-copy="qr-output" disabled>复制</button></div>
+          <p class="empty-result" id="qr-empty">识别结果会显示在这里。</p>
+          <pre id="qr-output" class="raw-output" aria-labelledby="qr-output-title" tabindex="0" hidden></pre>
+        </div>
+      </div>
+      <p class="status" id="qr-status" role="status"></p>
     </section>
   </main>
 </body>

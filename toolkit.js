@@ -302,6 +302,124 @@ for (const id of ['timestamp-input', 'timestamp-unit', 'date-input', 'date-zone'
   $(id).addEventListener('input', clearTimeResult);
 }
 
+const unicodeInput = $('unicode-input');
+const unicodeOutput = $('unicode-output');
+const unicodeCopy = document.querySelector('[data-copy="unicode-output"]');
+
+function clearUnicodeOutput() {
+  unicodeOutput.textContent = '';
+  unicodeCopy.disabled = true;
+  status('unicode-status');
+}
+
+function runUnicode(mode) {
+  clearUnicodeOutput();
+  try {
+    unicodeOutput.textContent = toolkitCore.convertUnicode(unicodeInput.value, mode);
+    unicodeCopy.disabled = false;
+    status('unicode-status', '转换完成。');
+  } catch (error) {
+    status('unicode-status', error.message, true);
+  }
+}
+
+for (const button of document.querySelectorAll('[data-unicode]')) {
+  button.addEventListener('click', () => runUnicode(button.dataset.unicode));
+}
+unicodeInput.addEventListener('input', clearUnicodeOutput);
+$('unicode-example').addEventListener('click', () => {
+  unicodeInput.value = '\\u4E2D\\u6587\\u0020\\uD83D\\uDE00';
+  runUnicode('decode');
+});
+$('unicode-clear').addEventListener('click', () => {
+  unicodeInput.value = '';
+  clearUnicodeOutput();
+  unicodeInput.focus();
+});
+
+const qrFile = $('qr-file');
+const qrPreview = $('qr-preview');
+const qrOutput = $('qr-output');
+const qrCopy = document.querySelector('[data-copy="qr-output"]');
+const qrClear = $('qr-clear');
+let qrImageUrl;
+
+function clearQrResult() {
+  if (qrImageUrl) URL.revokeObjectURL(qrImageUrl);
+  qrImageUrl = undefined;
+  qrPreview.hidden = true;
+  qrPreview.removeAttribute('src');
+  qrOutput.hidden = true;
+  qrOutput.textContent = '';
+  $('qr-empty').hidden = false;
+  qrCopy.disabled = true;
+  status('qr-status');
+}
+
+function decodeQrImage(image) {
+  const { naturalWidth: width, naturalHeight: height } = image;
+  const scale = Math.min(1, 4096 / Math.max(width, height), Math.sqrt(4_000_000 / (width * height)));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.floor(width * scale));
+  canvas.height = Math.max(1, Math.floor(height * scale));
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+  return window.jsQR(data, canvas.width, canvas.height);
+}
+
+qrFile.addEventListener('change', async () => {
+  clearQrResult();
+  const file = qrFile.files[0];
+  qrClear.disabled = !file;
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  qrImageUrl = url;
+  status('qr-status', '正在识别二维码…');
+  const image = new Image();
+  image.src = url;
+  try {
+    await image.decode();
+  } catch {
+    if (qrImageUrl === url) {
+      clearQrResult();
+      status('qr-status', '无法读取这张图片，请尝试 PNG、JPEG 或 WebP。', true);
+    }
+    return;
+  }
+  if (qrImageUrl !== url) return;
+
+  qrPreview.src = url;
+  qrPreview.hidden = false;
+  if (typeof window.jsQR !== 'function') {
+    status('qr-status', '二维码识别组件加载失败，请重新打开页面。', true);
+    return;
+  }
+  try {
+    const code = decodeQrImage(image);
+    if (!code) {
+      status('qr-status', '未识别到二维码，请尝试更清晰或裁剪后的图片。', true);
+      return;
+    }
+    qrOutput.textContent = code.data;
+    qrOutput.hidden = false;
+    $('qr-empty').hidden = true;
+    qrCopy.disabled = false;
+    status('qr-status', '已识别二维码。');
+  } catch {
+    status('qr-status', '无法读取图片像素，请尝试另一张图片。', true);
+  }
+});
+qrClear.addEventListener('click', () => {
+  qrFile.value = '';
+  clearQrResult();
+  qrClear.disabled = true;
+  qrFile.focus();
+});
+
 async function copyText(value) {
   try {
     if (navigator.clipboard) {
