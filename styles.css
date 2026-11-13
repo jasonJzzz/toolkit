@@ -102,7 +102,7 @@ button:disabled { cursor: default; opacity: .48; }
 
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
 .trailing { display: flex; align-items: center; gap: 2px; margin-left: auto; }
-.button, .select-field select, .form-body input {
+.button, .select-field select, .form-body input, .work-hours-table input {
   border: 1px solid var(--line);
   border-radius: 7px;
   background: var(--paper);
@@ -232,6 +232,19 @@ code, .text-diff-table tbody, .time-results dd { font-family: var(--mono); }
 .time-results > div + div { border-top: 1px solid var(--line); }
 .time-results dt { color: var(--muted); }
 .time-results dd { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 0; overflow-wrap: anywhere; }
+.work-hours-form { max-width: 640px; }
+.work-hours-table { width: 100%; border-spacing: 0; text-align: left; }
+.work-hours-table th, .work-hours-table td { padding: 9px clamp(8px, 2vw, 16px); border-bottom: 1px solid var(--line); }
+.work-hours-table thead th, .work-hours-calculated { color: var(--muted); }
+.work-hours-table input {
+  min-width: 0;
+  width: 100%;
+  min-height: 38px;
+  padding: 4px 8px;
+  font-family: var(--mono);
+}
+.work-hours-actions { margin: 0; padding: 12px clamp(8px, 2vw, 16px); }
+.work-hours-departure { color: var(--accent); font-size: 20px; }
 
 @media (max-width: 900px) {
   body { grid-template-columns: 185px minmax(0, 1fr); }

@@ -25,6 +25,7 @@
       <a href="#text-format"><span class="nav-icon nav-code" aria-hidden="true">\n</span>文本格式化</a>
       <a href="#text-diff"><span class="nav-icon nav-text" aria-hidden="true"></span>文本比较</a>
       <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
+      <a href="#work-hours"><span class="nav-icon nav-clock" aria-hidden="true"></span>下班计算器</a>
       <a href="#unicode"><span class="nav-icon nav-code" aria-hidden="true">U+</span>Unicode 转码</a>
       <a href="#qr-extract"><span class="nav-icon nav-qr" aria-hidden="true"></span>二维码提取</a>
     </nav>
@@ -218,6 +219,44 @@
         </dl>
       </div>
     </section>
+    <section class="tool" id="tool-work-hours" aria-labelledby="work-hours-title" hidden>
+      <header class="tool-header">
+        <div class="tool-heading">
+          <span class="tool-icon tool-symbol nav-clock" aria-hidden="true"></span>
+          <h1 id="work-hours-title">下班计算器</h1>
+        </div>
+        <p>每周满 40 小时，上班时间为 09:00–09:30，午休 12:00–13:30 不计工时，周五最早 18:00 下班。</p>
+      </header>
+      <form class="panel work-hours-form" id="work-hours-form" novalidate>
+        <table class="work-hours-table" aria-label="本周上下班时间">
+          <thead><tr><th scope="col">星期</th><th scope="col">上班时间</th><th scope="col">下班时间</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">周一</th><td><input type="time" name="monday-start" aria-label="周一上班时间" required></td><td><input type="time" name="monday-end" aria-label="周一下班时间" required></td></tr>
+            <tr><th scope="row">周二</th><td><input type="time" name="tuesday-start" aria-label="周二上班时间" required></td><td><input type="time" name="tuesday-end" aria-label="周二下班时间" required></td></tr>
+            <tr><th scope="row">周三</th><td><input type="time" name="wednesday-start" aria-label="周三上班时间" required></td><td><input type="time" name="wednesday-end" aria-label="周三下班时间" required></td></tr>
+            <tr><th scope="row">周四</th><td><input type="time" name="thursday-start" aria-label="周四上班时间" required></td><td><input type="time" name="thursday-end" aria-label="周四下班时间" required></td></tr>
+            <tr><th scope="row">周五</th><td><input type="time" name="friday-start" aria-label="周五上班时间" required></td><td class="work-hours-calculated">由工时计算</td></tr>
+          </tbody>
+        </table>
+        <div class="actions work-hours-actions">
+          <button type="submit" class="button primary">计算周五下班时间</button>
+          <div class="trailing">
+            <button type="button" class="button quiet" id="work-hours-example">载入示例</button>
+            <button type="reset" class="button quiet">清空</button>
+          </div>
+        </div>
+      </form>
+      <p class="status" id="work-hours-status" role="status"></p>
+      <div class="panel result work-hours-form" id="work-hours-result" hidden>
+        <div class="panel-head"><h2>计算结果</h2></div>
+        <dl class="time-results">
+          <div><dt>周一到周四已工作</dt><dd id="work-hours-completed"></dd></div>
+          <div><dt>距离 40 小时还差</dt><dd id="work-hours-remaining"></dd></div>
+          <div><dt>周五最早下班</dt><dd><strong class="work-hours-departure" id="work-hours-departure"></strong></dd></div>
+        </dl>
+      </div>
+    </section>
+
     <section class="tool" id="tool-unicode" aria-labelledby="unicode-title" hidden>
       <header class="tool-header">
         <div class="tool-heading">

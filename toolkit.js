@@ -340,6 +340,59 @@ for (const id of ['timestamp-input', 'timestamp-unit', 'date-input', 'date-zone'
   $(id).addEventListener('input', clearTimeResult);
 }
 
+const workHoursForm = $('work-hours-form');
+const workWeekdays = ['monday', 'tuesday', 'wednesday', 'thursday'];
+
+function describeWorkDuration(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return hours + ' 小时' + (remainder ? ' ' + remainder + ' 分钟' : '');
+}
+
+function clearWorkHoursResult() {
+  $('work-hours-result').hidden = true;
+  status('work-hours-status');
+}
+
+workHoursForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  clearWorkHoursResult();
+  const missingField = workHoursForm.querySelector('input:invalid');
+  if (missingField) {
+    status('work-hours-status', '请填写有效的' + missingField.getAttribute('aria-label') + '。', true);
+    missingField.focus();
+    return;
+  }
+
+  const data = new FormData(workHoursForm);
+  const workdays = workWeekdays.map((day) => ({
+    start: data.get(day + '-start'),
+    end: data.get(day + '-end'),
+  }));
+  try {
+    const { completed, remaining, departure } = toolkitCore.calculateFridayDeparture(workdays, data.get('friday-start'));
+    $('work-hours-completed').textContent = describeWorkDuration(completed);
+    $('work-hours-remaining').textContent = describeWorkDuration(remaining);
+    $('work-hours-departure').textContent = departure === null
+      ? '周五当天无法凑满 40 小时'
+      : String(Math.floor(departure / 60)).padStart(2, '0') + ':' + String(departure % 60).padStart(2, '0');
+    $('work-hours-result').hidden = false;
+  } catch (error) {
+    status('work-hours-status', error.message, true);
+  }
+});
+workHoursForm.addEventListener('input', clearWorkHoursResult);
+workHoursForm.addEventListener('reset', clearWorkHoursResult);
+$('work-hours-example').addEventListener('click', () => {
+  const departures = ['19:05', '19:00', '19:10', '19:15'];
+  for (const [index, day] of workWeekdays.entries()) {
+    workHoursForm.elements.namedItem(day + '-start').value = '09:30';
+    workHoursForm.elements.namedItem(day + '-end').value = departures[index];
+  }
+  workHoursForm.elements.namedItem('friday-start').value = '09:30';
+  workHoursForm.requestSubmit();
+});
+
 const unicodeInput = $('unicode-input');
 const unicodeOutput = $('unicode-output');
 const unicodeCopy = document.querySelector('[data-copy="unicode-output"]');

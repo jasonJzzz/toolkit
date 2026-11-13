@@ -454,5 +454,49 @@ const toolkitCore = (() => {
     };
   }
 
-  return { formatJson, decodeJsonString, restoreTextWhitespace, compareJson, compareText, convertUnicode, parseTimestamp, parseDate, describeTime };
+  const workStart = 9 * 60;
+  const latestWorkStart = workStart + 30;
+  const lunchStart = 12 * 60;
+  const lunchEnd = 13 * 60 + 30;
+  const earliestDeparture = 18 * 60;
+  const weeklyTarget = 40 * 60;
+
+  function clockMinutes(value) {
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+      throw new Error('请输入有效的时间，格式为 HH:mm。');
+    }
+    const [hours, minutes] = value.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  function startMinutes(value, day) {
+    const minutes = clockMinutes(value);
+    if (minutes < workStart || minutes > latestWorkStart) {
+      throw new Error(day + '上班时间应在 09:00–09:30 之间。');
+    }
+    return minutes;
+  }
+
+  function workedMinutes(start, end) {
+    const lunch = Math.max(0, Math.min(end, lunchEnd) - Math.max(start, lunchStart));
+    return end - start - lunch;
+  }
+
+  function calculateFridayDeparture(workdays, fridayStart) {
+    const days = ['周一', '周二', '周三', '周四'];
+    const completed = workdays.reduce((total, { start, end }, index) => {
+      const arrival = startMinutes(start, days[index]);
+      const departure = clockMinutes(end);
+      if (departure < arrival) throw new Error(days[index] + '下班时间不能早于上班时间。');
+      return total + workedMinutes(arrival, departure);
+    }, 0);
+    const fridayArrival = startMinutes(fridayStart, '周五');
+    const remaining = Math.max(0, weeklyTarget - completed);
+    const workedByEarliestDeparture = workedMinutes(fridayArrival, earliestDeparture);
+    const departure = earliestDeparture + Math.max(0, remaining - workedByEarliestDeparture);
+    const lastMinuteOfDay = 24 * 60 - 1;
+    return { completed, remaining, departure: departure <= lastMinuteOfDay ? departure : null };
+  }
+
+  return { formatJson, decodeJsonString, restoreTextWhitespace, compareJson, compareText, convertUnicode, parseTimestamp, parseDate, describeTime, calculateFridayDeparture };
 })();
