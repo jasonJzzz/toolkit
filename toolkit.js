@@ -346,6 +346,7 @@ $('unicode-clear').addEventListener('click', () => {
   unicodeInput.focus();
 });
 
+const qrTool = $('tool-qr-extract');
 const qrFile = $('qr-file');
 const qrPreview = $('qr-preview');
 const qrOutput = $('qr-output');
@@ -379,9 +380,8 @@ function decodeQrImage(image) {
   return window.jsQR(data, canvas.width, canvas.height);
 }
 
-qrFile.addEventListener('change', async () => {
+async function recognizeQrFile(file) {
   clearQrResult();
-  const file = qrFile.files[0];
   qrClear.disabled = !file;
   if (!file) return;
 
@@ -421,6 +421,22 @@ qrFile.addEventListener('change', async () => {
   } catch {
     status('qr-status', '无法读取图片像素，请尝试另一张图片。', true);
   }
+}
+
+qrFile.addEventListener('change', () => recognizeQrFile(qrFile.files[0]));
+document.addEventListener('paste', (event) => {
+  if (qrTool.hidden || !event.clipboardData) return;
+  const { files, items } = event.clipboardData;
+  const image = Array.from(files).find((file) => file.type.startsWith('image/'))
+    ?? Array.from(items).find((item) => item.kind === 'file' && item.type.startsWith('image/'))?.getAsFile();
+  if (!image) {
+    status('qr-status', '剪贴板里没有可识别的图片，请复制图片或截图后再粘贴。', true);
+    return;
+  }
+
+  event.preventDefault();
+  qrFile.value = '';
+  recognizeQrFile(image);
 });
 qrClear.addEventListener('click', () => {
   qrFile.value = '';
