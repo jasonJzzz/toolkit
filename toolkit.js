@@ -305,6 +305,13 @@ for (const id of ['timestamp-input', 'timestamp-unit', 'date-input', 'date-zone'
 const unicodeInput = $('unicode-input');
 const unicodeOutput = $('unicode-output');
 const unicodeCopy = document.querySelector('[data-copy="unicode-output"]');
+const unicodeActions = document.querySelectorAll('[data-unicode]');
+
+function selectUnicodeAction(mode) {
+  for (const button of unicodeActions) {
+    button.setAttribute('aria-pressed', String(button.dataset.unicode === mode));
+  }
+}
 
 function clearUnicodeOutput() {
   unicodeOutput.textContent = '';
@@ -313,6 +320,7 @@ function clearUnicodeOutput() {
 }
 
 function runUnicode(mode) {
+  selectUnicodeAction(mode);
   clearUnicodeOutput();
   try {
     unicodeOutput.textContent = toolkitCore.convertUnicode(unicodeInput.value, mode);
@@ -323,7 +331,7 @@ function runUnicode(mode) {
   }
 }
 
-for (const button of document.querySelectorAll('[data-unicode]')) {
+for (const button of unicodeActions) {
   button.addEventListener('click', () => runUnicode(button.dataset.unicode));
 }
 unicodeInput.addEventListener('input', clearUnicodeOutput);
@@ -333,6 +341,7 @@ $('unicode-example').addEventListener('click', () => {
 });
 $('unicode-clear').addEventListener('click', () => {
   unicodeInput.value = '';
+  selectUnicodeAction();
   clearUnicodeOutput();
   unicodeInput.focus();
 });

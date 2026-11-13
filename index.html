@@ -195,13 +195,13 @@
           <span class="tool-icon" aria-hidden="true">U+</span>
           <h1 id="unicode-title">Unicode 转码</h1>
         </div>
-        <p>在文本和 Unicode 转义之间转换，例如「中文」和 <code>\u4E2D\u6587</code>。</p>
+        <p>在文本、Unicode 转义（<code>\u0041</code>）和数字引用（<code>&amp;#65;</code>）之间转换。</p>
       </header>
       <div class="actions">
-        <button type="button" class="button primary" data-unicode="encode">文本转 Unicode</button>
-        <button type="button" class="button" data-unicode="decode">Unicode 转文本</button>
-        <button type="button" class="button" data-unicode="encode-ascii">ASCII 转 Unicode</button>
-        <button type="button" class="button" data-unicode="decode-ascii">Unicode 转 ASCII</button>
+        <button type="button" class="button unicode-action" data-unicode="encode" aria-pressed="false">文本转 Unicode</button>
+        <button type="button" class="button unicode-action" data-unicode="decode" aria-pressed="false">Unicode 转文本</button>
+        <button type="button" class="button unicode-action" data-unicode="encode-reference" aria-pressed="false">文本转数字引用</button>
+        <button type="button" class="button unicode-action" data-unicode="decode-reference" aria-pressed="false">数字引用转文本</button>
         <div class="trailing">
           <button type="button" class="button quiet" id="unicode-example">载入示例</button>
           <button type="button" class="button quiet" id="unicode-clear">清空</button>
@@ -210,7 +210,7 @@
       <div class="editor-grid comparison-inputs unicode-editors">
         <div class="panel editor">
           <div class="panel-head"><label for="unicode-input">原始内容</label></div>
-          <textarea id="unicode-input" spellcheck="false" placeholder="粘贴中文、ASCII 文本或 Unicode 转义…"></textarea>
+          <textarea id="unicode-input" spellcheck="false" placeholder="粘贴文本、Unicode 转义或数字引用…"></textarea>
         </div>
         <div class="panel editor">
           <div class="panel-head"><h2 id="unicode-output-title">转换结果</h2><button type="button" class="button small" data-copy="unicode-output" disabled>复制</button></div>

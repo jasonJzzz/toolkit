@@ -111,6 +111,17 @@ button:disabled { cursor: default; opacity: .48; }
 .button:hover:not(:disabled) { border-color: #b9c2b4; background: #f0f3ed; }
 .button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.button.unicode-action {
+  background: #f0f3ed;
+  border-color: #b9c2b4;
+  color: var(--accent);
+}
+.button.unicode-action:hover,
+.button.unicode-action[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 .button.quiet { background: transparent; border-color: transparent; color: var(--muted); }
 .button.small { min-height: 28px; padding: 2px 9px; font-size: 12px; }
 .select-field { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }

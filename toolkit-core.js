@@ -356,22 +356,25 @@ const toolkitCore = (() => {
     return { rows, simplified, inlineSimplified };
   }
 
-  function requireAscii(text) {
-    if (/[^\x00-\x7F]/.test(text)) {
-      throw new Error('内容包含非 ASCII 字符，请使用普通文本转换。');
-    }
-    return text;
-  }
-
   function convertUnicode(source, mode) {
     if (source === '') throw new Error('请先输入需要转换的内容。');
 
-    if (mode === 'encode' || mode === 'encode-ascii') {
-      const text = mode === 'encode-ascii' ? requireAscii(source) : source;
-      return text.replace(/[\s\S]/g, (unit) => '\\u' + unit.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'));
+    if (mode === 'encode') {
+      return source.replace(/[\s\S]/g, (unit) => '\\u' + unit.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'));
+    }
+    if (mode === 'encode-reference') {
+      // Match the reference tools' UTF-16 code units, including surrogate pairs.
+      return source.replace(/[\s\S]/g, (unit) => '&#' + unit.charCodeAt(0) + ';');
+    }
+    if (mode === 'decode-reference') {
+      return source.replace(/&#(?:(\d+)|x([\da-f]+));/gi, (_, decimal, hex) => {
+        const value = hex ? parseInt(hex, 16) : Number(decimal);
+        if (value > 0x10FFFF) throw new Error('数字引用超出 Unicode 范围。');
+        return String.fromCodePoint(value);
+      });
     }
 
-    const decoded = source.replace(/\\\\|\\u(?:\{[^}]*\}?|[\da-f]{0,4})/gi, (escape) => {
+    return source.replace(/\\\\|\\u(?:\{[^}]*\}?|[\da-f]{0,4})/gi, (escape) => {
       if (escape === '\\\\') return escape;
       if (/^\\u[\da-f]{4}$/i.test(escape)) return String.fromCharCode(parseInt(escape.slice(2), 16));
       const point = escape.match(/^\\u\{([\da-f]{1,6})\}$/i);
@@ -379,7 +382,6 @@ const toolkitCore = (() => {
       if (value <= 0x10FFFF) return String.fromCodePoint(value);
       throw new Error('Unicode 转义格式无效，请使用 \\u4E2D 或 \\u{1F600}。');
     });
-    return mode === 'decode-ascii' ? requireAscii(decoded) : decoded;
   }
 
   function asMilliseconds(value) {
