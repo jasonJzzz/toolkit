@@ -1,17 +1,49 @@
 'use strict';
 
+// 本文件连接 HTML 控件和 toolkitCore。事件处理负责取值、调用计算方法和展示结果。
 const $ = (id) => document.getElementById(id);
 const tools = Array.from(document.querySelectorAll('.tool'));
 const navigation = Array.from(document.querySelectorAll('.tools-nav a'));
 const changeLabels = { added: '新增', removed: '删除', changed: '修改', same: '相同' };
+const workHoursLink = $('work-hours-link');
+const brandButton = $('brand-button');
 
+// 每次加载随机选一张图片，让侧栏徽标和浏览器标签页图标使用同一张。
 const brandIcon = './assets/tu' + (Math.floor(Math.random() * 3) + 1) + '.jpg';
 document.querySelector('link[rel="icon"]').href = brandIcon;
 document.querySelector('.brand-icon').src = brandIcon;
 
+// 连续点击左上角图片达到此次数后，显示侧栏中的「下班计算器」。
+const workHoursUnlockClicks = 5;
+let brandClicks = 0;
+let lastBrandClick = 0;
+// 点了别处或相邻两次间隔超过 2 秒都会重新计数，刷新后入口恢复隐藏。
+document.addEventListener('click', (event) => {
+  if (!workHoursLink.hidden) return;
+  if (!brandButton.contains(event.target)) {
+    brandClicks = 0;
+    return;
+  }
+
+  const now = performance.now();
+  if (now - lastBrandClick > 2000) brandClicks = 0;
+  lastBrandClick = now;
+  brandClicks++;
+  if (brandClicks === workHoursUnlockClicks) {
+    workHoursLink.hidden = false;
+    brandButton.setAttribute('aria-expanded', 'true');
+  }
+});
+
+// 用 URL 中的 #片段选择对应的 tool-<名称> 区块，同时更新侧栏选中状态。
 function showTool() {
-  const route = window.location.hash.slice(1);
+  let route = window.location.hash.slice(1);
   if (route === 'workspace') return;
+  // 与侧栏共用入口的显示状态，未解锁时直接输入 #work-hours 也会回到默认页。
+  if (workHoursLink.hidden && window.location.hash === workHoursLink.hash) {
+    route = 'json-format';
+    window.history.replaceState(null, '', '#json-format');
+  }
   const active = tools.find((tool) => tool.id === 'tool-' + route) || tools[0];
   for (const tool of tools) tool.hidden = tool !== active;
   for (const link of navigation) {
@@ -29,6 +61,7 @@ function status(id, message = '', error = false) {
   target.classList.toggle('error', error);
 }
 
+// 通过 textContent 写入用户输入或计算结果，浏览器会把内容按文本展示。
 function makeElement(tag, className, value) {
   const element = document.createElement(tag);
   if (className) element.className = className;
@@ -42,6 +75,7 @@ function appendSummary(id, types, rows) {
   $(id).replaceChildren(...types.map((type) => makeElement('span', 'tag ' + type, changeLabels[type] + ' ' + counts[type])));
 }
 
+// 将核心返回的字段路径和变更类型组装成差异卡片。
 function renderJsonDiff() {
   clearComparison('json');
   try {
@@ -70,6 +104,7 @@ function renderJsonDiff() {
   }
 }
 
+// 渲染两列原文和行内高亮。「只显示差异」过滤显示行，统计仍包含全部行。
 function renderTextDiff() {
   clearComparison('text');
   const before = $('text-before').value;
@@ -147,6 +182,7 @@ const compareExamples = {
     '订单已创建\n数量：120\n状态：待审批\n检查库存\n等待回调'],
 };
 
+// 两个比较工具采用同一套控件命名，共享示例、清空和交换事件的绑定方式。
 for (const [id, example] of Object.entries(compareExamples)) {
   const before = $(id + '-before');
   const after = $(id + '-after');
@@ -174,6 +210,7 @@ const formatInput = $('json-input');
 const formatOutput = $('json-output');
 const formatCopy = document.querySelector('[data-copy="json-output"]');
 
+// 各工具的两个编辑框独立成对。拖动一侧调高时，只同步同组的另一侧。
 for (const grid of document.querySelectorAll('.format-editors')) {
   const editors = grid.querySelectorAll('textarea');
   let editorHeight = '';
@@ -199,6 +236,7 @@ function refreshFormatCounts() {
   formatCopy.disabled = formatOutput.value === '';
 }
 
+// 格式化和压缩只传不同缩进，解码按钮另外启用多层 JSON 字段解码。
 function formatJson(indent, decode = false) {
   try {
     if (decode) {
@@ -255,6 +293,7 @@ function clearTextFormatOutput() {
   status('text-format-status');
 }
 
+// 普通文本直接还原换行和制表符，输入可以没有外层引号。
 function formatPlainText() {
   const source = textFormatInput.value;
   if (source === '') {
@@ -285,6 +324,7 @@ function clearTimeResult() {
   status('timestamp-status');
 }
 
+// 两个转换方向统一返回毫秒，再交给同一个结果面板显示。
 function showTime(milliseconds, message) {
   for (const [key, value] of Object.entries(toolkitCore.describeTime(milliseconds))) $('time-' + key).textContent = value;
   $('timestamp-result').hidden = false;
@@ -319,6 +359,7 @@ $('timestamp-now').addEventListener('click', () => {
   const time = Date.now();
   $('timestamp-input').value = String(time);
   $('timestamp-unit').value = 'milliseconds';
+  // 日期输入框填到秒。省去时区后缀后，将默认时区同步为 UTC。
   $('date-input').value = new Date(time).toISOString().split('.')[0].replace('T', ' ');
   $('date-zone').value = '0';
   showTime(time, '已读取当前时间。');
@@ -354,6 +395,7 @@ function clearWorkHoursResult() {
   status('work-hours-status');
 }
 
+// 先检查表单是否填齐，再把前四天的出勤记录和周五上班时间传给核心方法。
 workHoursForm.addEventListener('submit', (event) => {
   event.preventDefault();
   clearWorkHoursResult();
@@ -410,6 +452,7 @@ function clearUnicodeOutput() {
   status('unicode-status');
 }
 
+// 四种按钮通过 data-unicode 传入模式，aria-pressed 用于保留当前选中样式。
 function runUnicode(mode) {
   selectUnicodeAction(mode);
   clearUnicodeOutput();
@@ -445,6 +488,7 @@ const qrCopy = document.querySelector('[data-copy="qr-output"]');
 const qrClear = $('qr-clear');
 let qrImageUrl;
 
+// 更换或清除图片时释放旧的 Blob URL，并清空对应的预览和结果。
 function clearQrResult() {
   if (qrImageUrl) URL.revokeObjectURL(qrImageUrl);
   qrImageUrl = undefined;
@@ -457,6 +501,7 @@ function clearQrResult() {
   status('qr-status');
 }
 
+// 将图片画进 Canvas 后取出 RGBA 像素交给 jsQR。限制画布边长和总像素以控制开销。
 function decodeQrImage(image) {
   const { naturalWidth: width, naturalHeight: height } = image;
   const scale = Math.min(1, 4096 / Math.max(width, height), Math.sqrt(4_000_000 / (width * height)));
@@ -490,6 +535,7 @@ async function recognizeQrFile(file) {
     }
     return;
   }
+  // 异步解码期间可能选了另一张图，因此只展示当前 URL 对应的结果。
   if (qrImageUrl !== url) return;
 
   qrPreview.src = url;
@@ -514,6 +560,7 @@ async function recognizeQrFile(file) {
   }
 }
 
+// 选择文件和粘贴图片共用识别流程。二维码工具显示时才从剪贴板提取图片。
 qrFile.addEventListener('change', () => recognizeQrFile(qrFile.files[0]));
 document.addEventListener('paste', (event) => {
   if (qrTool.hidden || !event.clipboardData) return;
@@ -543,7 +590,7 @@ async function copyText(value) {
       return;
     }
   } catch {
-    // The selection fallback also supports local files and non-HTTPS previews.
+    // Clipboard API 不可用时，下面会尝试选中临时文本框并复制，兼容本地预览。
   }
   const previousFocus = document.activeElement;
   const field = makeElement('textarea', '', value);
@@ -560,6 +607,7 @@ async function copyText(value) {
   }
 }
 
+// data-copy 对应要读取的元素 ID，各工具复用同一套复制和反馈逻辑。
 for (const button of document.querySelectorAll('[data-copy]')) {
   let timer;
   button.addEventListener('click', async () => {

@@ -54,6 +54,7 @@ button:disabled { cursor: default; opacity: .48; }
 }
 
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; width: fit-content; }
+.brand-button { flex: none; padding: 0; border: 0; border-radius: 10px; background: transparent; }
 .brand strong { display: block; font-size: 24px; line-height: 1.2; font-weight: 750; letter-spacing: -.05em; }
 .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; letter-spacing: .08em; }
 .brand-icon { display: block; flex: none; width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }

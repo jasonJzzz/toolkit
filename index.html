@@ -15,17 +15,19 @@
 <body>
   <a class="skip-link" href="#workspace">跳到工具区</a>
   <aside class="sidebar">
-    <a class="brand" href="#json-format" aria-label="Toolkit，返回 JSON 格式化">
-      <img class="brand-icon" src="./assets/tu3.jpg" alt="" width="40" height="40">
-      <span><strong>Toolkit</strong><small>杂七杂八的工具箱</small></span>
-    </a>
+    <div class="brand">
+      <button class="brand-button" id="brand-button" type="button" aria-label="工具箱图片" aria-controls="work-hours-link" aria-expanded="false">
+        <img class="brand-icon" src="./assets/tu3.jpg" alt="" width="40" height="40">
+      </button>
+      <a href="#json-format" aria-label="Toolkit，返回 JSON 格式化"><strong>Toolkit</strong><small>杂七杂八的工具箱</small></a>
+    </div>
     <nav class="tools-nav" aria-label="工具导航">
       <a href="#json-format" aria-current="page"><span class="nav-icon nav-code" aria-hidden="true">{ }</span>JSON 格式化</a>
       <a href="#json-diff"><span class="nav-icon nav-diff" aria-hidden="true"></span>JSON Diff</a>
       <a href="#text-format"><span class="nav-icon nav-code" aria-hidden="true">\n</span>文本格式化</a>
       <a href="#text-diff"><span class="nav-icon nav-text" aria-hidden="true"></span>文本比较</a>
       <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
-      <a href="#work-hours"><span class="nav-icon nav-clock" aria-hidden="true"></span>下班计算器</a>
+      <a href="#work-hours" id="work-hours-link" hidden><span class="nav-icon nav-clock" aria-hidden="true"></span>下班计算器</a>
       <a href="#unicode"><span class="nav-icon nav-code" aria-hidden="true">U+</span>Unicode 转码</a>
       <a href="#qr-extract"><span class="nav-icon nav-qr" aria-hidden="true"></span>二维码提取</a>
     </nav>

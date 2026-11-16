@@ -1,10 +1,12 @@
 'use strict';
 
+// 核心方法只处理传入的数据，页面的事件、提示和渲染由 toolkit.js 负责。
 const toolkitCore = (() => {
   const tokenPattern = /"(?:[^"\\]|\\[\s\S])*"|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[{}\[\],:]/g;
   const maxAlignmentCells = 2_000_000;
   const maxTime = 8_640_000_000_000_000n;
 
+  // 先用 JSON.parse 校验，再从原文提取记号。这样大整数和数字写法都能原样保留。
   function jsonTokens(source) {
     if (!source.trim()) throw new Error('请先输入 JSON。');
     try {
@@ -21,10 +23,12 @@ const toolkitCore = (() => {
     return source.match(tokenPattern);
   }
 
+  // 缩进为 0 时直接拼接记号实现压缩，字符串内部的空白会随记号保留。
   function formatJson(source, indentation = 2) {
     return formatTokens(jsonTokens(source), indentation);
   }
 
+  // 遇到对象或数组的边界时调整嵌套层级，再用层级决定换行后的缩进。
   function formatTokens(tokens, indentation) {
     if (indentation === 0) return tokens.join('');
 
@@ -52,6 +56,7 @@ const toolkitCore = (() => {
     return parts.join('');
   }
 
+  // 逐层拆开字符串包装，直到得到合法的 JSON 对象或数组。解析不了时返回 null。
   function readJsonContainer(source) {
     let candidate = source.trim();
 
@@ -65,7 +70,7 @@ const toolkitCore = (() => {
       } catch {
         if (!candidate.includes('\\')) return null;
         try {
-          // Some database viewers copy the escaped value without its outer quotes.
+          // 有些数据库工具复制字段时会省去外层引号，补上引号后再尝试解码。
           candidate = JSON.parse('"' + candidate + '"').trim();
         } catch {
           return null;
@@ -75,6 +80,7 @@ const toolkitCore = (() => {
     return null;
   }
 
+  // 接受 JSON 原文或转义字段值。最外层是普通 JSON 字符串时，可以直接返回文本。
   function decodeJsonString(source, indentation = 2) {
     if (!source.trim()) throw new Error('请先粘贴需要解码的字段值。');
 
@@ -94,6 +100,7 @@ const toolkitCore = (() => {
 
     const outputTokens = [];
     let expanded = 0;
+    // 冒号前的字符串是对象键。只递归展开可以解析为对象或数组的字符串值。
     function expandValues(values) {
       for (let index = 0; index < values.length; index++) {
         const token = values[index];
@@ -113,11 +120,14 @@ const toolkitCore = (() => {
     return { output: formatTokens(outputTokens, indentation), kind: 'json', expanded };
   }
 
+  // 按原文扫描一遍。双反斜杠作为一个整体处理，生成的反斜杠不会在本次继续解码。
+  // \r、\n 和 \r\n 都统一成换行，\t 转成制表符，其余内容按原文保留。
   function restoreTextWhitespace(source) {
     const escapes = { '\\': '\\', n: '\n', r: '\n', 'r\\n': '\n', t: '\t' };
     return source.replace(/\\(r\\n|[\\nrt])/g, (_, escape) => escapes[escape]);
   }
 
+  // 递归生成用于比较的结构。数字同时保存规范值和原始写法，分别用于比较和展示。
   function parseForComparison(source) {
     const tokens = jsonTokens(source);
     let index = 0;
@@ -158,6 +168,7 @@ const toolkitCore = (() => {
     }
   }
 
+  // 把 1、1.0 和 1e0 化为相同的有效数字与指数，避免浮点数舍入。
   function normalizeNumber(token) {
     const [, sign, whole, fraction = '', exponent = '0'] = token.match(/^(-?)(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i);
     const digits = (whole + fraction).replace(/^0+/, '');
@@ -176,6 +187,7 @@ const toolkitCore = (() => {
     return JSON.stringify(node.value);
   }
 
+  // 从根路径 $ 开始比较。对象按键匹配，数组按下标匹配，输出新增、删除和修改。
   function compareJson(beforeSource, afterSource) {
     let before;
     let after;
@@ -222,6 +234,8 @@ const toolkitCore = (() => {
     return changes;
   }
 
+  // 共用于行对齐和行内字符对齐。先保留相同的首尾，再用最长公共子序列对齐中间部分。
+  // 差异用 [旧下标, 新下标] 表示，缺失的一侧用 null。矩阵超出预算时，中间部分按整段差异处理。
   function alignSequences(left, right, limit) {
     const pairs = [];
     let i = 0;
@@ -245,6 +259,7 @@ const toolkitCore = (() => {
     if (hasMiddle && !simplified) {
       const startI = i;
       const startJ = j;
+      // 从右下角往回填表，每格记录从两个当前位置开始还能匹配多少项。
       const matches = new Uint32Array(cells);
       for (let row = oldCount - 1; row >= 0; row--) {
         for (let col = newCount - 1; col >= 0; col--) {
@@ -269,6 +284,7 @@ const toolkitCore = (() => {
     return { pairs, simplified, cellsUsed: hasMiddle && !simplified ? cells : 0 };
   }
 
+  // 对齐使用处理过的字符，标记通过位置映射写回原文，以保留大小写和空白。
   function lineDiffSegments(before, after, options, limit) {
     function readCharacters(text) {
       const characters = Array.from(text);
@@ -311,6 +327,8 @@ const toolkitCore = (() => {
     };
   }
 
+  // 先按行对齐，再把同一差异段内可配对的删除行和新增行组合为修改行。
+  // 忽略大小写或空白时只处理比较用的键，结果仍保留原文和原始行号。
   function compareText(before, after, options = {}) {
     function readLines(text) {
       if (text === '') return [];
@@ -361,6 +379,7 @@ const toolkitCore = (() => {
     return { rows, simplified, inlineSimplified };
   }
 
+  // Unicode 转义使用 \uXXXX。数字引用使用 &#数字;，编码时按原始文本逐个写出。
   function convertUnicode(source, mode) {
     if (source === '') throw new Error('请先输入需要转换的内容。');
 
@@ -368,7 +387,7 @@ const toolkitCore = (() => {
       return source.replace(/[\s\S]/g, (unit) => '\\u' + unit.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'));
     }
     if (mode === 'encode-reference') {
-      // Match the reference tools' UTF-16 code units, including surrogate pairs.
+      // 与参考工具一致，按 UTF-16 代码单元编码，表情可能生成两条数字引用。
       return source.replace(/[\s\S]/g, (unit) => '&#' + unit.charCodeAt(0) + ';');
     }
     if (mode === 'decode-reference') {
@@ -394,6 +413,8 @@ const toolkitCore = (() => {
     return Number(value);
   }
 
+  // 自动模式把最多 10 位的整数和带小数的值当秒，较长的整数当毫秒。
+  // 用 BigInt 拼出整数毫秒，校验日期可表示范围后再转为 Number。
   function parseTimestamp(source, unit) {
     const input = source.trim();
     const parts = input.match(/^([+-]?)(\d+)(?:\.(\d+))?$/);
@@ -412,6 +433,8 @@ const toolkitCore = (() => {
     return { milliseconds: asMilliseconds(sign === '-' ? -milliseconds : milliseconds), unit: detected };
   }
 
+  // 先按 UTC 日历构造日期并核对各字段，识别会被 Date 自动滚动的日期。
+  // 文本里的 Z 或显式偏移优先，其余情况使用页面选定的默认时区。
   function parseDate(source, fallbackOffset) {
     const parts = source.trim().match(/^([+-]\d{6}|\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(?:\s*(Z|[+-]\d{2}:?\d{2}))?)?$/i);
     if (!parts) throw new Error('请输入 YYYY-MM-DD HH:mm:ss 或 ISO 8601 日期时间。');
@@ -439,6 +462,7 @@ const toolkitCore = (() => {
     return asMilliseconds(BigInt(date.getTime()) - BigInt(offset * 60_000));
   }
 
+  // 同一个毫秒时间戳生成秒、毫秒、UTC 和北京时间四种展示值。
   function describeTime(milliseconds) {
     const date = new Date(milliseconds);
     const utc = date.toISOString();
@@ -454,6 +478,7 @@ const toolkitCore = (() => {
     };
   }
 
+  // 公司工时规则统一以分钟表示，方便做加减和范围判断。
   const workStart = 9 * 60;
   const latestWorkStart = workStart + 30;
   const lunchStart = 12 * 60;
@@ -477,11 +502,14 @@ const toolkitCore = (() => {
     return minutes;
   }
 
+  // 只扣除上下班区间与午休区间重叠的部分，兼顾中午前或午休期间离开的情况。
   function workedMinutes(start, end) {
     const lunch = Math.max(0, Math.min(end, lunchEnd) - Math.max(start, lunchStart));
     return end - start - lunch;
   }
 
+  // 先累计前四天工时，再比较周五做到 18:00 的工时与剩余工时。
+  // 有缺口就从 18:00 往后补。若时间超出周五当天，departure 返回 null。
   function calculateFridayDeparture(workdays, fridayStart) {
     const days = ['周一', '周二', '周三', '周四'];
     const completed = workdays.reduce((total, { start, end }, index) => {

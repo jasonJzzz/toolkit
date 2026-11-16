@@ -12,6 +12,14 @@
 - Unicode 转码，支持文本与 Unicode 转义、文本与数字引用互转。「文本转数字引用」按原始输入编码，例如 `\u` → `&#92;&#117;`。数字引用支持十进制（`&#65;`）和十六进制（`&#x41;`）解码。
 - 二维码提取，支持选择本地图片或在二维码页按 Ctrl+V（Mac 上按 ⌘+V）粘贴图片或截图，然后预览、识别并复制原始内容。每张图返回一个二维码结果，网址以文本显示。
 
+## 阅读源码
+
+- `index.html` 放工具页面、输入框和按钮。侧栏链接的 `#名称` 对应页面区块的 `tool-名称`。
+- `toolkit.js` 绑定点击、提交、粘贴等事件，读取输入并展示结果。二维码识别也在这里调用浏览器的 Canvas 和本地 jsQR。
+- `toolkit-core.js` 放 JSON、文本、Unicode、时间戳和工时的计算方法，可以顺着同名方法旁的中文注释阅读。
+
+例如，要看「文本比较」，可以从 `index.html` 的 `compare-text` 按钮，顺着 `toolkit.js` 的 `renderTextDiff` 找到 `toolkit-core.js` 的 `compareText`。再看 `alignSequences` 如何对齐行和字符。
+
 ## 本地运行
 
 在浏览器中打开 `index.html`。也可以在项目目录运行 `python -m http.server 4173 --bind 127.0.0.1`，然后访问 `http://127.0.0.1:4173/`。
