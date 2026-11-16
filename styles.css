@@ -59,7 +59,7 @@ button:disabled { cursor: default; opacity: .48; }
 .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; letter-spacing: .08em; }
 .brand-icon { display: block; flex: none; width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
 
-.tools-nav { display: grid; gap: 5px; margin-top: 43px; }
+.tools-nav { --tool-gap: 5px; display: grid; gap: var(--tool-gap); margin-top: 43px; }
 .tools-nav a {
   display: flex;
   align-items: center;
@@ -73,6 +73,25 @@ button:disabled { cursor: default; opacity: .48; }
 }
 .tools-nav a:hover { background: #e8e8e0; }
 .tools-nav a[aria-current="page"] { background: var(--accent-soft); border-color: #d2dfce; color: #263d28; }
+.optional-tool {
+  display: grid;
+  grid-column: 1 / -1;
+  align-self: start;
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  transition: grid-template-rows 220ms ease, opacity 180ms ease, margin-top 220ms ease;
+}
+.optional-tool[inert] {
+  grid-template-rows: 0fr;
+  margin-top: calc(-1 * var(--tool-gap));
+  opacity: 0;
+}
+.optional-tool-content { min-height: 0; overflow: hidden; }
+.optional-tool-content a:focus-visible { outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) {
+  .optional-tool { transition: none; }
+}
 .nav-icon { display: inline-grid; place-items: center; width: 20px; height: 20px; flex: none; position: relative; }
 .nav-code { font: 700 12px var(--mono); letter-spacing: -.12em; }
 .nav-diff::before, .nav-diff::after { position: absolute; content: ''; width: 11px; height: 8px; border: 1px solid currentColor; border-radius: 2px; }

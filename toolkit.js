@@ -5,7 +5,9 @@ const $ = (id) => document.getElementById(id);
 const tools = Array.from(document.querySelectorAll('.tool'));
 const navigation = Array.from(document.querySelectorAll('.tools-nav a'));
 const changeLabels = { added: '新增', removed: '删除', changed: '修改', same: '相同' };
+const workHoursEntry = $('work-hours-entry');
 const workHoursLink = $('work-hours-link');
+const workHoursTool = $('tool-work-hours');
 const brandButton = $('brand-button');
 
 // 每次加载随机选一张图片，让侧栏徽标和浏览器标签页图标使用同一张。
@@ -13,13 +15,12 @@ const brandIcon = './assets/tu' + (Math.floor(Math.random() * 3) + 1) + '.jpg';
 document.querySelector('link[rel="icon"]').href = brandIcon;
 document.querySelector('.brand-icon').src = brandIcon;
 
-// 连续点击左上角图片达到此次数后，显示侧栏中的「下班计算器」。
+// 每次连续点击左上角图片达到此次数，就切换侧栏中的「下班计算器」。
 const workHoursUnlockClicks = 5;
 let brandClicks = 0;
 let lastBrandClick = 0;
 // 点了别处或相邻两次间隔超过 2 秒都会重新计数，刷新后入口恢复隐藏。
 document.addEventListener('click', (event) => {
-  if (!workHoursLink.hidden) return;
   if (!brandButton.contains(event.target)) {
     brandClicks = 0;
     return;
@@ -30,8 +31,15 @@ document.addEventListener('click', (event) => {
   lastBrandClick = now;
   brandClicks++;
   if (brandClicks === workHoursUnlockClicks) {
-    workHoursLink.hidden = false;
-    brandButton.setAttribute('aria-expanded', 'true');
+    brandClicks = 0;
+    const expanded = workHoursEntry.inert;
+    // inert 立即改变入口的可操作性，CSS 负责渐变高度和透明度。
+    workHoursEntry.inert = !expanded;
+    brandButton.setAttribute('aria-expanded', String(expanded));
+    if (!expanded && !workHoursTool.hidden) {
+      window.history.replaceState(null, '', '#json-format');
+      showTool();
+    }
   }
 });
 
@@ -40,7 +48,7 @@ function showTool() {
   let route = window.location.hash.slice(1);
   if (route === 'workspace') return;
   // 与侧栏共用入口的显示状态，未解锁时直接输入 #work-hours 也会回到默认页。
-  if (workHoursLink.hidden && window.location.hash === workHoursLink.hash) {
+  if (workHoursEntry.inert && window.location.hash === workHoursLink.hash) {
     route = 'json-format';
     window.history.replaceState(null, '', '#json-format');
   }
