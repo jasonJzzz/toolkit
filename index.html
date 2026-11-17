@@ -8,6 +8,7 @@
   <title>杂七杂八的工具箱</title>
   <link rel="icon" type="image/jpeg" href="./assets/tu3.jpg">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles-v2.css">
   <script src="./toolkit-core.js" defer></script>
   <script src="./assets/vendor/jsqr/jsQR.js" defer></script>
   <script src="./toolkit.js" defer></script>
@@ -19,7 +20,7 @@
       <button class="brand-button" id="brand-button" type="button" aria-label="工具箱图片" aria-controls="work-hours-entry" aria-expanded="false">
         <img class="brand-icon" src="./assets/tu3.jpg" alt="" width="40" height="40">
       </button>
-      <a href="#json-format" aria-label="Toolkit，返回 JSON 格式化"><strong>Toolkit</strong><small>杂七杂八的工具箱</small></a>
+      <a href="#json-format" id="brand-home" aria-label="Toolkit，返回 JSON 格式化"><strong>Toolkit</strong><small>杂七杂八的工具箱</small></a>
     </div>
     <nav class="tools-nav" aria-label="工具导航">
       <a href="#json-format" aria-current="page"><span class="nav-icon nav-code" aria-hidden="true">{ }</span>JSON 格式化</a>
@@ -39,6 +40,10 @@
   </aside>
 
   <main id="workspace" class="workspace">
+    <nav class="tool-version-switch" id="tool-version-switch" aria-label="界面版本" hidden>
+      <a id="tool-version-original" href="#json-format">原版</a>
+      <a id="tool-version-v2" href="#json-format-v2">V2</a>
+    </nav>
     <section class="tool" id="tool-json-format" aria-labelledby="json-format-title">
       <header class="tool-header">
         <div class="tool-heading">
@@ -168,6 +173,7 @@
       <p class="status" id="text-status" role="status"></p>
       <div class="panel result" id="text-result" hidden>
         <div class="panel-head result-head"><h2>对照结果</h2><div class="summary" id="text-summary"></div></div>
+        <p class="v2-diff-scroll-note">横向滚动可查看完整对照。</p>
         <div class="line-scroll" id="text-result-scroll" tabindex="0" aria-label="左右对照结果">
           <table class="text-diff-table" aria-label="文本差异">
             <colgroup><col class="diff-line-col"><col></colgroup>

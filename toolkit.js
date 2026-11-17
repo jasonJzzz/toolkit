@@ -3,12 +3,15 @@
 // 本文件连接 HTML 控件和 toolkitCore。事件处理负责取值、调用计算方法和展示结果。
 const $ = (id) => document.getElementById(id);
 const tools = Array.from(document.querySelectorAll('.tool'));
-const navigation = Array.from(document.querySelectorAll('.tools-nav a'));
+const navigation = Array.from(document.querySelectorAll('.tools-nav a'), (link) => ({ link, route: link.hash.slice(1) }));
 const changeLabels = { added: '新增', removed: '删除', changed: '修改', same: '相同' };
 const workHoursEntry = $('work-hours-entry');
-const workHoursLink = $('work-hours-link');
 const workHoursTool = $('tool-work-hours');
 const brandButton = $('brand-button');
+const brandHome = $('brand-home');
+const versionSwitch = $('tool-version-switch');
+const originalVersionLink = $('tool-version-original');
+const v2VersionLink = $('tool-version-v2');
 
 // 每次加载随机选一张图片，让侧栏徽标和浏览器标签页图标使用同一张。
 const brandIcon = './assets/tu' + (Math.floor(Math.random() * 3) + 1) + '.jpg';
@@ -37,27 +40,43 @@ document.addEventListener('click', (event) => {
     workHoursEntry.inert = !expanded;
     brandButton.setAttribute('aria-expanded', String(expanded));
     if (!expanded && !workHoursTool.hidden) {
-      window.history.replaceState(null, '', '#json-format');
+      const homeRoute = document.body.classList.contains('toolkit-v2') ? '#json-format-v2' : '#json-format';
+      window.history.replaceState(null, '', homeRoute);
       showTool();
     }
   }
 });
 
-// 用 URL 中的 #片段选择对应的 tool-<名称> 区块，同时更新侧栏选中状态。
+// 原版和 -v2 路由复用同一个工具区块，切换样式时输入、结果和事件绑定都能保留。
 function showTool() {
-  let route = window.location.hash.slice(1);
-  if (route === 'workspace') return;
-  // 与侧栏共用入口的显示状态，未解锁时直接输入 #work-hours 也会回到默认页。
-  if (workHoursEntry.inert && window.location.hash === workHoursLink.hash) {
-    route = 'json-format';
-    window.history.replaceState(null, '', '#json-format');
+  const fragment = window.location.hash.slice(1);
+  if (fragment === 'workspace') return;
+  const isV2 = fragment.endsWith('-v2');
+  const suffix = isV2 ? '-v2' : '';
+  const requestedRoute = isV2 ? fragment.slice(0, -3) : fragment;
+  let active = tools.find((tool) => tool.id === 'tool-' + requestedRoute) || tools[0];
+  if (active === workHoursTool && workHoursEntry.inert) {
+    active = tools[0];
+    window.history.replaceState(null, '', '#json-format' + suffix);
   }
-  const active = tools.find((tool) => tool.id === 'tool-' + route) || tools[0];
+  const activeRoute = active.id.slice(5);
+  document.body.classList.toggle('toolkit-v2', isV2);
   for (const tool of tools) tool.hidden = tool !== active;
-  for (const link of navigation) {
-    if (link.hash === '#' + active.id.slice(5)) link.setAttribute('aria-current', 'page');
+  for (const { link, route } of navigation) {
+    link.href = '#' + route + suffix;
+    if (route === activeRoute) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
+  brandHome.href = '#json-format' + suffix;
+  originalVersionLink.href = '#' + activeRoute;
+  v2VersionLink.href = '#' + activeRoute + '-v2';
+  const currentVersion = isV2 ? v2VersionLink : originalVersionLink;
+  const otherVersion = isV2 ? originalVersionLink : v2VersionLink;
+  currentVersion.setAttribute('aria-current', 'page');
+  otherVersion.removeAttribute('aria-current');
+  const header = active.querySelector('.tool-header');
+  if (versionSwitch.parentElement !== header) header.append(versionSwitch);
+  versionSwitch.hidden = false;
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', showTool);
