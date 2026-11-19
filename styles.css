@@ -179,7 +179,23 @@ button:disabled { cursor: default; opacity: .48; }
 .button.quiet { background: transparent; border-color: transparent; color: var(--muted); }
 .button.small { min-height: 28px; padding: 2px 9px; font-size: 12px; }
 .select-field { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
-.select-field select { min-height: 38px; padding: 5px 8px; color: var(--ink); font-size: 13px; }
+/* 关闭浏览器自带的贴边箭头，统一预留文字、箭头与右边框之间的空间。 */
+.select-field select {
+  min-height: 38px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px 42px 7px 12px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23536359' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+  background-position: right 14px center;
+  color: var(--ink);
+  font-size: 13px;
+}
+@media (forced-colors: active) {
+  .select-field select { appearance: auto; background-image: none; padding-inline-end: 12px; }
+}
 .actions > .select-field { margin-left: 5px; }
 
 .editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -394,7 +410,10 @@ a:hover .nav-diff::after { background: var(--sidebar-hover); }
 .button.small { min-height: 34px; }
 .select-field select { min-height: 40px; }
 .panel { border-radius: 12px; }
-.panel-head { min-height: 48px; background: var(--rail); border-radius: 11px 11px 0 0; }
+/* 34px 复制按钮 + 20px 上下内边距 + 1px 边框，两侧统一预留 56px。
+   只含标题的面板也使用同一高度，避免正文起点与中间分隔线错位。
+   使用最小高度而非固定高度，窄屏或放大文字时仍允许标题换行。 */
+.panel-head { min-height: 56px; background: var(--rail); border-radius: 11px 11px 0 0; }
 .editor-grid:has(> .editor) {
   gap: 0;
   overflow: clip;
