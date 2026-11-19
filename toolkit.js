@@ -9,9 +9,6 @@ const workHoursEntry = $('work-hours-entry');
 const workHoursTool = $('tool-work-hours');
 const brandButton = $('brand-button');
 const brandHome = $('brand-home');
-const versionSwitch = $('tool-version-switch');
-const originalVersionLink = $('tool-version-original');
-const v2VersionLink = $('tool-version-v2');
 
 // 每次加载随机选一张图片，让侧栏徽标和浏览器标签页图标使用同一张。
 const brandIcon = './assets/tu' + (Math.floor(Math.random() * 3) + 1) + '.jpg';
@@ -40,43 +37,30 @@ document.addEventListener('click', (event) => {
     workHoursEntry.inert = !expanded;
     brandButton.setAttribute('aria-expanded', String(expanded));
     if (!expanded && !workHoursTool.hidden) {
-      const homeRoute = document.body.classList.contains('toolkit-v2') ? '#json-format-v2' : '#json-format';
-      window.history.replaceState(null, '', homeRoute);
+      window.history.replaceState(null, '', '#json-format');
       showTool();
     }
   }
 });
 
-// 原版和 -v2 路由复用同一个工具区块，切换样式时输入、结果和事件绑定都能保留。
+// 所有工具使用统一界面。旧 -v2 书签自动归一到当前工具地址。
 function showTool() {
   const fragment = window.location.hash.slice(1);
   if (fragment === 'workspace') return;
-  const isV2 = fragment.endsWith('-v2');
-  const suffix = isV2 ? '-v2' : '';
-  const requestedRoute = isV2 ? fragment.slice(0, -3) : fragment;
+  const requestedRoute = fragment.replace(/-v2$/, '');
   let active = tools.find((tool) => tool.id === 'tool-' + requestedRoute) || tools[0];
   if (active === workHoursTool && workHoursEntry.inert) {
     active = tools[0];
-    window.history.replaceState(null, '', '#json-format' + suffix);
   }
   const activeRoute = active.id.slice(5);
-  document.body.classList.toggle('toolkit-v2', isV2);
+  if (fragment && fragment !== activeRoute) window.history.replaceState(null, '', '#' + activeRoute);
   for (const tool of tools) tool.hidden = tool !== active;
   for (const { link, route } of navigation) {
-    link.href = '#' + route + suffix;
+    link.href = '#' + route;
     if (route === activeRoute) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
-  brandHome.href = '#json-format' + suffix;
-  originalVersionLink.href = '#' + activeRoute;
-  v2VersionLink.href = '#' + activeRoute + '-v2';
-  const currentVersion = isV2 ? v2VersionLink : originalVersionLink;
-  const otherVersion = isV2 ? originalVersionLink : v2VersionLink;
-  currentVersion.setAttribute('aria-current', 'page');
-  otherVersion.removeAttribute('aria-current');
-  const header = active.querySelector('.tool-header');
-  if (versionSwitch.parentElement !== header) header.append(versionSwitch);
-  versionSwitch.hidden = false;
+  brandHome.href = '#json-format';
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', showTool);

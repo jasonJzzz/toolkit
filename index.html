@@ -8,10 +8,12 @@
   <title>杂七杂八的工具箱</title>
   <link rel="icon" type="image/jpeg" href="./assets/tu3.jpg">
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./styles-v2.css">
   <script src="./toolkit-core.js" defer></script>
+  <script src="./assets/vendor/toolkit-vendor.js" defer></script>
+  <script src="./toolkit-extra-core.js" defer></script>
   <script src="./assets/vendor/jsqr/jsQR.js" defer></script>
   <script src="./toolkit.js" defer></script>
+  <script src="./toolkit-extra.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到工具区</a>
@@ -30,6 +32,13 @@
       <a href="#timestamp"><span class="nav-icon nav-clock" aria-hidden="true"></span>时间戳转换</a>
       <a href="#unicode"><span class="nav-icon nav-code" aria-hidden="true">U+</span>Unicode 转码</a>
       <a href="#qr-extract"><span class="nav-icon nav-qr" aria-hidden="true"></span>二维码提取</a>
+      <a href="#url-codec"><span class="nav-icon nav-text" aria-hidden="true"></span>URL 编码／解码</a>
+      <a href="#base64"><span class="nav-icon nav-text" aria-hidden="true"></span>Base64 编码／解码</a>
+      <a href="#regex"><span class="nav-icon nav-text" aria-hidden="true"></span>正则表达式测试</a>
+      <a href="#data-convert"><span class="nav-icon nav-text" aria-hidden="true"></span>JSON ↔ YAML／CSV</a>
+      <a href="#cron"><span class="nav-icon nav-text" aria-hidden="true"></span>Cron 表达式解释</a>
+      <a href="#jsonpath"><span class="nav-icon nav-text" aria-hidden="true"></span>JSONPath 查询</a>
+      <a href="#hash"><span class="nav-icon nav-text" aria-hidden="true"></span>摘要计算</a>
       <div class="optional-tool" id="work-hours-entry" inert>
         <div class="optional-tool-content">
           <a href="#work-hours" id="work-hours-link"><span class="nav-icon nav-clock" aria-hidden="true"></span>下班计算器</a>
@@ -40,10 +49,6 @@
   </aside>
 
   <main id="workspace" class="workspace">
-    <nav class="tool-version-switch" id="tool-version-switch" aria-label="界面版本" hidden>
-      <a id="tool-version-original" href="#json-format">原版</a>
-      <a id="tool-version-v2" href="#json-format-v2">V2</a>
-    </nav>
     <section class="tool" id="tool-json-format" aria-labelledby="json-format-title">
       <header class="tool-header">
         <div class="tool-heading">
@@ -173,7 +178,7 @@
       <p class="status" id="text-status" role="status"></p>
       <div class="panel result" id="text-result" hidden>
         <div class="panel-head result-head"><h2>对照结果</h2><div class="summary" id="text-summary"></div></div>
-        <p class="v2-diff-scroll-note">横向滚动可查看完整对照。</p>
+        <p class="diff-scroll-note">横向滚动可查看完整对照。</p>
         <div class="line-scroll" id="text-result-scroll" tabindex="0" aria-label="左右对照结果">
           <table class="text-diff-table" aria-label="文本差异">
             <colgroup><col class="diff-line-col"><col></colgroup>
@@ -323,6 +328,117 @@
         </div>
       </div>
       <p class="status" id="qr-status" role="status"></p>
+    </section>
+
+    <section class="tool extra-tool" id="tool-url-codec" aria-labelledby="url-codec-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="url-codec-title">URL 编码／解码</h1></div><p>按 UTF-8 编解码。参数模式适合单个查询参数，完整网址模式保留 : / ? &amp; = 等分隔符。</p></header>
+      <form id="url-codec-form">
+        <div class="extra-controls"><label class="select-field" for="url-mode"><span>模式</span><select id="url-mode"><option value="component">查询参数</option><option value="uri">完整网址</option></select></label></div>
+        <div class="actions"><button type="submit" class="button primary" name="action" value="encode">编码</button><button type="submit" class="button" name="action" value="decode">解码</button><div class="trailing">
+          <button type="button" class="button quiet" id="url-codec-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="url-codec-input">原始内容</label></div>
+    <textarea id="url-codec-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="url-codec-output">处理结果</label><button type="button" class="button small" data-copy="url-codec-output" disabled>复制</button></div>
+    <textarea id="url-codec-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="url-codec-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-base64" aria-labelledby="base64-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="base64-title">Base64 编码／解码</h1></div><p>文本使用 UTF-8，支持中文和 Emoji；URL-safe 模式使用 - 和 _，编码结果省略填充。</p></header>
+      <form id="base64-form">
+        <div class="extra-controls"><label class="select-field" for="base64-mode"><span>变体</span><select id="base64-mode"><option value="standard">标准 Base64</option><option value="url">Base64URL</option></select></label></div>
+        <div class="actions"><button type="submit" class="button primary" name="action" value="encode">编码</button><button type="submit" class="button" name="action" value="decode">解码</button><div class="trailing">
+          <button type="button" class="button quiet" id="base64-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="base64-input">原始内容</label></div>
+    <textarea id="base64-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="base64-output">处理结果</label><button type="button" class="button small" data-copy="base64-output" disabled>复制</button></div>
+    <textarea id="base64-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="base64-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-regex" aria-labelledby="regex-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="regex-title">正则表达式测试</h1></div><p>填写 JavaScript 正则主体和标志。查看匹配位置、捕获组及替换结果，最多展示 1000 组匹配。</p></header>
+      <form id="regex-form">
+        <div class="extra-controls"><label class="extra-field" for="regex-pattern"><span>正则主体</span><input id="regex-pattern" type="text" value="订单-(\d+)" placeholder="" spellcheck="false"></label><label class="extra-field" for="regex-flags"><span>标志</span><input id="regex-flags" type="text" value="g" placeholder="g、i、m、s、u、y" spellcheck="false"></label><label class="extra-field" for="regex-replacement"><span>替换文本</span><input id="regex-replacement" type="text" value="ORDER-$1" placeholder="" spellcheck="false"></label></div>
+        <div class="actions"><button type="submit" class="button primary">测试与替换</button><div class="trailing">
+          <button type="button" class="button quiet" id="regex-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="regex-input">原始内容</label></div>
+    <textarea id="regex-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="regex-output">处理结果</label><button type="button" class="button small" data-copy="regex-output" disabled>复制</button></div>
+    <textarea id="regex-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="regex-status" role="status"></p>
+        <div class="panel editor result"><div class="panel-head"><label for="regex-replaced">替换结果</label><button type="button" class="button small" data-copy="regex-replaced" disabled>复制</button></div><textarea id="regex-replaced" readonly spellcheck="false"></textarea></div>
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-data-convert" aria-labelledby="data-convert-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="data-convert-title">JSON ↔ YAML／CSV</h1></div><p>JSON 转 CSV 接受扁平对象数组；CSV 第一行为表头，转回 JSON 时每格保留为字符串，嵌套结构请使用 YAML。</p></header>
+      <form id="data-convert-form">
+        <div class="extra-controls"><label class="select-field" for="convert-mode"><span>转换方向</span><select id="convert-mode"><option value="json-yaml">JSON → YAML</option><option value="yaml-json">YAML → JSON</option><option value="json-csv">JSON → CSV</option><option value="csv-json">CSV → JSON</option></select></label></div>
+        <div class="actions"><button type="submit" class="button primary">转换</button><div class="trailing">
+          <button type="button" class="button quiet" id="data-convert-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="data-convert-input">原始内容</label></div>
+    <textarea id="data-convert-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="data-convert-output">处理结果</label><button type="button" class="button small" data-copy="data-convert-output" disabled>复制</button></div>
+    <textarea id="data-convert-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="data-convert-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-cron" aria-labelledby="cron-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="cron-title">Cron 表达式解释</h1></div><p>支持 *、逗号、范围、步长和月份／星期名称。Spring 模式中日期与星期至少一项为 * 或 ?，以下展示基准时间之后的 5 次执行。</p></header>
+      <form id="cron-form">
+        <div class="extra-controls"><label class="select-field" for="cron-dialect"><span>规则</span><select id="cron-dialect"><option value="spring">Spring 六字段（秒 分 时 日 月 周）</option><option value="linux">Linux 五字段（分 时 日 月 周）</option></select></label><label class="select-field" for="cron-timezone"><span>时区</span><select id="cron-timezone"><option value="Asia/Shanghai">北京时间</option><option value="UTC">UTC</option></select></label><label class="extra-field" for="cron-expression"><span>表达式</span><input id="cron-expression" type="text" value="0 0 9 * * MON-FRI" placeholder="" spellcheck="false"></label><label class="extra-field" for="cron-start"><span>基准时间（留空使用当前时间）</span><input id="cron-start" type="datetime-local" step="1"></label></div>
+        <div class="actions"><button type="submit" class="button primary">解释并计算</button><div class="trailing">
+          <button type="button" class="button quiet" id="cron-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="panel editor"><div class="panel-head"><label for="cron-output">说明与下次执行时间</label><button type="button" class="button small" data-copy="cron-output" disabled>复制</button></div>
+    <textarea id="cron-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div>
+        <p class="status" id="cron-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-jsonpath" aria-labelledby="jsonpath-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="jsonpath-title">JSONPath 查询</h1></div><p>支持字段、下标、通配符、递归查询与过滤，例如 $.items[*].id 或 $.items[?(@.price &gt; 10)]。结果始终以数组展示。</p></header>
+      <form id="jsonpath-form">
+        <div class="extra-controls"><label class="extra-field" for="jsonpath-expression"><span>JSONPath</span><input id="jsonpath-expression" type="text" value="$.items[*].id" placeholder="" spellcheck="false"></label></div>
+        <div class="actions"><button type="submit" class="button primary">查询</button><div class="trailing">
+          <button type="button" class="button quiet" id="jsonpath-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="jsonpath-input">原始内容</label></div>
+    <textarea id="jsonpath-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="jsonpath-output">处理结果</label><button type="button" class="button small" data-copy="jsonpath-output" disabled>复制</button></div>
+    <textarea id="jsonpath-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="jsonpath-status" role="status"></p>
+
+      </form>
+    </section>
+
+    <section class="tool extra-tool" id="tool-hash" aria-labelledby="hash-title" hidden>
+      <header class="tool-header"><div class="tool-heading"><h1 id="hash-title">摘要计算</h1></div><p>计算 UTF-8 文本或文件原始字节的 MD5、SHA-1、SHA-256、SHA-512。文本中的空格和换行都会参与计算。</p></header>
+      <form id="hash-form">
+        <div class="extra-controls"><label class="select-field" for="hash-mode"><span>输入来源</span><select id="hash-mode"><option value="text">文本</option><option value="file">文件</option></select></label><label class="extra-field" id="hash-file-field" for="hash-file" hidden><span>选择文件（最大 50 MiB）</span><input type="file" id="hash-file"></label></div>
+        <div class="actions"><button type="submit" class="button primary">计算摘要</button><div class="trailing">
+          <button type="button" class="button quiet" id="hash-example">载入示例</button>
+          <button type="reset" class="button quiet">重置</button>
+        </div></div>
+        <div class="editor-grid comparison-inputs"><div class="panel editor"><div class="panel-head"><label for="hash-input">原始内容</label></div>
+    <textarea id="hash-input" spellcheck="false"  placeholder="粘贴需要处理的内容…"></textarea></div><div class="panel editor"><div class="panel-head"><label for="hash-output">处理结果</label><button type="button" class="button small" data-copy="hash-output" disabled>复制</button></div>
+    <textarea id="hash-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div></div>
+        <p class="status" id="hash-status" role="status"></p>
+
+      </form>
     </section>
   </main>
 </body>
