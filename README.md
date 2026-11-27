@@ -15,7 +15,7 @@
 - UTF-8 文本 Base64／Base64URL 编码与解码。
 - JavaScript 正则测试，显示匹配位置、捕获组及替换结果。
 - JSON 与 YAML、CSV 互转，CSV 转 JSON 时保留字符串值。
-- Spring 六字段、Linux 五字段 Cron 解释及未来五次执行时间。
+- Spring 六字段、Linux 五字段 Cron 解释及未来七次执行时间，支持按字段可视化生成、常用预设及反向载入。
 - JSONPath 字段提取、递归查询及过滤。
 - 文本和文件的 MD5、SHA-1、SHA-256、SHA-512 摘要计算。
 
@@ -26,6 +26,7 @@
 - `toolkit.js` 绑定点击、提交、粘贴等事件，读取输入并展示结果。二维码识别也在这里调用浏览器的 Canvas 和本地 jsQR。
 - `toolkit-core.js` 放 JSON、文本、Unicode、时间戳和工时的计算方法，可以顺着同名方法旁的中文注释阅读。
 - `toolkit-extra.js` 和 `toolkit-extra-core.js` 放新增工具的事件与后台线程计算，第三方库随项目保存在 `assets/vendor/`。
+- `toolkit-cron.js` 放 Cron 执行时间列表、字段生成器、预设、反向载入和自动计算逻辑。
 
 例如，要看「文本比较」，可以从 `index.html` 的 `compare-text` 按钮，顺着 `toolkit.js` 的 `renderTextDiff` 找到 `toolkit-core.js` 的 `compareText`。再看 `alignSequences` 如何对齐行和字符。
 

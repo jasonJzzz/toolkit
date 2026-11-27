@@ -14,6 +14,7 @@
   <script src="./assets/vendor/jsqr/jsQR.js" defer></script>
   <script src="./toolkit.js" defer></script>
   <script src="./toolkit-extra.js" defer></script>
+  <script src="./toolkit-cron.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到工具区</a>
@@ -36,7 +37,7 @@
       <a href="#base64"><span class="nav-icon nav-text" aria-hidden="true"></span>Base64 编码／解码</a>
       <a href="#regex"><span class="nav-icon nav-text" aria-hidden="true"></span>正则表达式测试</a>
       <a href="#data-convert"><span class="nav-icon nav-text" aria-hidden="true"></span>JSON ↔ YAML／CSV</a>
-      <a href="#cron"><span class="nav-icon nav-text" aria-hidden="true"></span>Cron 表达式解释</a>
+      <a href="#cron"><span class="nav-icon nav-text" aria-hidden="true"></span>Cron 定时任务</a>
       <a href="#jsonpath"><span class="nav-icon nav-text" aria-hidden="true"></span>JSONPath 查询</a>
       <a href="#hash"><span class="nav-icon nav-text" aria-hidden="true"></span>摘要计算</a>
       <div class="optional-tool" id="work-hours-entry" inert>
@@ -395,18 +396,36 @@
     </section>
 
     <section class="tool extra-tool" id="tool-cron" aria-labelledby="cron-title" hidden>
-      <header class="tool-header"><div class="tool-heading"><h1 id="cron-title">Cron 表达式解释</h1></div><p>支持 *、逗号、范围、步长和月份／星期名称。Spring 模式中日期与星期至少一项为 * 或 ?，以下展示基准时间之后的 5 次执行。</p></header>
+      <header class="tool-header"><div class="tool-heading"><h1 id="cron-title">Cron 定时任务</h1></div><p>支持 *、逗号、范围、步长和月份／星期名称。Spring 模式中日期与星期至少一项为 * 或 ?，查看接下来 7 次执行时间，或使用下方可视化生成器。暂不支持 Quartz、年字段及 L／W／# 扩展。</p></header>
       <form id="cron-form">
         <div class="extra-controls"><label class="select-field" for="cron-dialect"><span>规则</span><select id="cron-dialect"><option value="spring">Spring 六字段（秒 分 时 日 月 周）</option><option value="linux">Linux 五字段（分 时 日 月 周）</option></select></label><label class="select-field" for="cron-timezone"><span>时区</span><select id="cron-timezone"><option value="Asia/Shanghai">北京时间</option><option value="UTC">UTC</option></select></label><label class="extra-field" for="cron-expression"><span>表达式</span><input id="cron-expression" type="text" value="0 0 9 * * MON-FRI" placeholder="" spellcheck="false"></label><label class="extra-field" for="cron-start"><span>基准时间（留空使用当前时间）</span><input id="cron-start" type="datetime-local" step="1"></label></div>
         <div class="actions"><button type="submit" class="button primary">解释并计算</button><div class="trailing">
           <button type="button" class="button quiet" id="cron-example">载入示例</button>
           <button type="reset" class="button quiet">重置</button>
         </div></div>
-        <div class="panel editor"><div class="panel-head"><label for="cron-output">说明与下次执行时间</label><button type="button" class="button small" data-copy="cron-output" disabled>复制</button></div>
-    <textarea id="cron-output" spellcheck="false" readonly placeholder="处理结果会显示在这里。"></textarea></div>
+        <section class="panel cron-preview" aria-labelledby="cron-preview-title">
+          <div class="panel-head"><h2 id="cron-preview-title">表达式解释与执行时间</h2><button type="button" class="button small" data-copy="cron-output" disabled>复制结果</button></div>
+          <p id="cron-description" class="cron-description">输入表达式，点击「解释并计算」。</p>
+          <p class="cron-zone-note">严格晚于基准时间；按上方所选时区计算，不会创建真实定时任务。</p>
+          <ol id="cron-times" class="cron-times" aria-label="接下来七次执行时间"></ol>
+          <textarea id="cron-output" hidden readonly></textarea>
+        </section>
         <p class="status" id="cron-status" role="status"></p>
-
       </form>
+      <section class="cron-builder" aria-labelledby="cron-builder-title">
+        <div class="cron-section-heading"><div><h2 id="cron-builder-title">定时任务生成器</h2><p>逐项选择即可生成，自动同步到上方并计算。规则、时区和基准时间与上方共用。</p></div><button type="button" class="button" id="cron-builder-import">从上方表达式载入</button></div>
+        <div class="cron-presets" id="cron-presets" aria-label="常用定时"></div>
+        <div class="cron-builder-layout">
+          <div class="panel cron-config">
+            <div class="cron-field-tabs" id="cron-field-tabs" role="tablist" aria-label="Cron 字段"></div>
+            <div id="cron-field-panel" class="cron-field-panel" role="tabpanel" tabindex="0"></div>
+            <div class="cron-field-values" id="cron-field-values" aria-label="各字段表达式"></div>
+          </div>
+          <aside class="panel cron-preview" aria-labelledby="cron-builder-preview-title"><div class="panel-head"><h2 id="cron-builder-preview-title">接下来 7 次执行</h2></div><p id="cron-builder-description" class="cron-description">修改配置后自动计算。</p><ol id="cron-builder-times" class="cron-times"></ol></aside>
+        </div>
+        <div class="cron-generated"><label class="extra-field" for="cron-generated"><span>生成的 Cron 表达式</span><input id="cron-generated" readonly spellcheck="false"></label><button type="button" class="button" data-copy="cron-generated" disabled>复制表达式</button><button type="button" class="button" id="cron-builder-reset">重置生成器</button></div>
+        <p class="status" id="cron-builder-status" role="status"></p>
+      </section>
     </section>
 
     <section class="tool extra-tool" id="tool-jsonpath" aria-labelledby="jsonpath-title" hidden>

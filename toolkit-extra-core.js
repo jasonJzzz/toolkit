@@ -104,7 +104,7 @@ function createExtraCore() {
     }
     const currentDate = start || new Date().toISOString();
     const iterator = vendor.CronExpressionParser.parse(normalized.join(' '), { currentDate, tz: timezone });
-    const next = Array.from({ length: 5 }, () => iterator.next().toISOString());
+    const next = Array.from({ length: 7 }, () => iterator.next().toISOString());
     const format = new Intl.DateTimeFormat('zh-CN', {
       timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
@@ -112,6 +112,7 @@ function createExtraCore() {
     return {
       description: vendor.cronDescription.toString(normalized.join(' '), { locale: 'zh_CN', use24HourTimeFormat: true }),
       next: next.map(iso => format.format(new Date(iso)).replaceAll('/', '-')),
+      weekdays: next.map(iso => new Intl.DateTimeFormat('zh-CN', { timeZone: timezone, weekday: 'long' }).format(new Date(iso))),
     };
   }
 

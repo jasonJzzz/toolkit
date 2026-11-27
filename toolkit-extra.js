@@ -22,6 +22,7 @@ function resetExtraResult(route) {
     document.querySelector('[data-copy="regex-replaced"]').disabled = true;
   }
   status(route + '-status');
+  if (route === 'cron') clearCronPreview();
 }
 
 function writeExtraOutput(route, output) {
@@ -143,8 +144,9 @@ for (const route of extraRoutes) {
         const start = date ? new Date(toolkitCore.parseDate(date, timezone === 'UTC' ? 0 : 480)).toISOString() : undefined;
         input = { expression: $('cron-expression').value, dialect: $('cron-dialect').value, timezone, start };
         render = result => {
-          writeExtraOutput(route, result.description + '\n\n下次执行时间（' + timezone + '）\n' + result.next.join('\n'));
-          status(route + '-status', '已计算 5 次执行时间。');
+          writeExtraOutput(route, result.description + '\n\n下次执行时间（' + timezone + '）\n' + result.next.map((date, i) => date + ' ' + result.weekdays[i]).join('\n'));
+          renderCronPreview(result);
+          status(route + '-status', '已计算 7 次执行时间。');
         };
       } else if (route === 'hash') {
         if ($('hash-mode').value === 'file') {

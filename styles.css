@@ -488,3 +488,50 @@ a:hover .nav-diff::after { background: var(--sidebar-hover); }
   .tool > .actions { gap: 6px; }
   .tool > .actions .trailing { margin-left: 0; }
 }
+
+/* Cron：先阅读执行结果，再通过字段配置生成表达式；不依赖外部服务。 */
+.cron-description { margin: 0; padding: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.cron-zone-note, .cron-help { margin: 0; padding: 0 16px 14px; color: var(--muted); font-size: 13px; }
+.cron-times { margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; }
+.cron-times li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 13px 16px; border-top: 1px solid var(--line); }
+.cron-times time { font: 13px/1.6 var(--mono); overflow-wrap: anywhere; }
+.cron-time-index { color: var(--muted); font: 12px var(--mono); }
+.cron-weekday { color: var(--accent); font-size: 12px; }
+.cron-builder { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
+.cron-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.cron-section-heading h2 { margin: 0 0 6px; font-size: 23px; }
+.cron-section-heading p { margin: 0; max-width: 65ch; color: var(--muted); }
+.cron-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.cron-presets .button { font-size: 13px; font-weight: 500; }
+.cron-builder-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(290px, 1fr); gap: 16px; align-items: start; }
+.cron-field-tabs { display: flex; padding: 6px; gap: 4px; border-bottom: 1px solid var(--line); background: var(--rail); border-radius: 11px 11px 0 0; }
+.cron-field-tab { flex: 1; min-width: 0; min-height: 42px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); }
+.cron-field-tab:hover { background: var(--accent-soft); }
+.cron-field-tab[aria-selected="true"] { background: var(--accent); color: #fff; font-weight: 600; }
+.cron-field-panel { padding: 18px 16px; }
+.cron-modes { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 16px; }
+.cron-modes label { display: flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; }
+.cron-modes input { accent-color: var(--accent); }
+.cron-number-controls { display: flex; gap: 12px; max-width: 360px; }
+.cron-number-controls .extra-field { flex: 1; min-width: 0; }
+.cron-value-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 6px; margin-bottom: 16px; }
+.cron-value-grid label { position: relative; cursor: pointer; }
+.cron-value-grid input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; }
+.cron-value-grid span { display: grid; place-items: center; min-height: 36px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--mono); }
+.cron-value-grid input:checked + span { background: var(--accent); color: white; border-color: var(--accent); }
+.cron-value-grid input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cron-field-panel .cron-help { padding: 0; margin-top: 14px; }
+.cron-field-values { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 12px; border-top: 1px solid var(--line); }
+.cron-field-values div { display: grid; gap: 4px; text-align: center; min-width: 0; }
+.cron-field-values span { color: var(--muted); font-size: 12px; }
+.cron-field-values code { overflow-wrap: anywhere; padding: 7px 3px; background: var(--rail); border-radius: 5px; font-size: 12px; }
+.cron-generated { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.cron-generated .extra-field { flex: 1 1 260px; }
+@media (max-width: 1100px) { .cron-builder-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 680px) {
+  .cron-times li { gap: 6px; padding-inline: 12px; grid-template-columns: 20px minmax(0, 1fr) auto; }
+  .cron-times time { font-size: 12px; }
+  .cron-field-tab { font-size: 13px; padding-inline: 2px; }
+  .cron-field-panel { padding: 14px 12px; }
+  .cron-field-values { padding-inline: 8px; gap: 4px; }
+}
