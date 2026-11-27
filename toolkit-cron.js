@@ -1,14 +1,14 @@
 'use strict';
 
 // Cron 的展示与生成共用原来的 Worker，只生成表达式，不执行或保存服务器任务。
-function clearCronPreview() {
-  for (const prefix of ['cron', 'cron-builder']) {
+function clearCronPreview(prefix = 'cron') {
+  {
     $(prefix + '-times').replaceChildren();
     $(prefix + '-description').textContent = '等待计算；修改输入后请重新计算。';
   }
 }
-function renderCronPreview(result) {
-  for (const prefix of ['cron', 'cron-builder']) {
+function renderCronPreview(result, prefix = 'cron') {
+  {
     $(prefix + '-description').textContent = result.description;
     $(prefix + '-times').replaceChildren(...result.next.map((date, i) => {
       const row = makeElement('li');
@@ -28,7 +28,7 @@ function renderCronPreview(result) {
   let states;
   let active = 1;
   let timer;
-  const isSpring = () => $('cron-dialect').value === 'spring';
+  const isSpring = () => $('cron-builder-dialect').value === 'spring';
   const visible = () => definitions.map((_, i) => i).filter(i => isSpring() || i !== 0);
   const defaults = () => ['0', '0', '9', '*', '*', '1-5'];
 
@@ -83,14 +83,14 @@ function renderCronPreview(result) {
       }));
       status('cron-builder-status', compute ? '已生成，将自动计算。' : '修改配置即可自动计算，也可载入已有表达式。');
       if (compute) {
-        $('cron-expression').value = expression;
-        resetExtraResult('cron');
-        timer = setTimeout(() => $('cron-form').requestSubmit(), 220);
+        $('cron-builder-expression').value = expression;
+        resetExtraResult('cron-builder');
+        timer = setTimeout(() => $('cron-builder-form').requestSubmit(), 220);
       }
     } catch (error) {
       $('cron-generated').value = '';
       document.querySelector('[data-copy="cron-generated"]').disabled = true;
-      resetExtraResult('cron');
+      resetExtraResult('cron-builder');
       status('cron-builder-status', error.message, true);
     }
   }
@@ -178,22 +178,38 @@ function renderCronPreview(result) {
     button.addEventListener('click', () => load((isSpring()?fields:fields.slice(1)).join(' '),true)); return button;
   }));
   $('cron-builder-import').addEventListener('click', () => {
-    try { load($('cron-expression').value,true); } catch(error) { status('cron-builder-status',error.message,true); }
+    try { load($('cron-builder-expression').value,true); } catch(error) { status('cron-builder-status',error.message,true); }
   });
   $('cron-builder-reset').addEventListener('click', () => load((isSpring()?defaults():defaults().slice(1)).join(' '),true));
-  $('cron-dialect').addEventListener('change', () => {
+  $('cron-builder-dialect').addEventListener('change', () => {
     clearTimeout(timer);
     if (isSpring() && !['every','unspecified'].includes(states[3].mode) && !['every','unspecified'].includes(states[5].mode)) states[5].mode = 'unspecified';
-    draw(); synchronize(false);
-    status('cron-builder-status','规则已切换。载入上方表达式，或修改生成器配置后生成。');
+    draw(); synchronize();
   });
-  // 在下方也展示 Worker 的处理中、成功或错误，用户无需滚回页首查找原因。
-  new MutationObserver(() => {
-    if ($('cron-status').textContent) status('cron-builder-status', $('cron-status').textContent, $('cron-status').classList.contains('error'));
-  }).observe($('cron-status'), { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-  // 手工提交、重置或编辑上方输入时，取消尚未执行的自动计算，避免晚到任务覆盖结果。
-  $('cron-form').addEventListener('input', () => clearTimeout(timer));
-  $('cron-form').addEventListener('submit', () => clearTimeout(timer));
-  $('cron-form').addEventListener('reset', () => { clearTimeout(timer); setTimeout(() => load(defaults().join(' '), false),0); });
+  // 生成器使用自己的表单、Worker 状态与预览，避免切换页面时互相覆盖。
+  const form = $('cron-builder-form');
+  form.addEventListener('input', event => {
+    // 字段面板自身已校验、清理结果并安排计算，不能在冒泡阶段取消它。
+    if (event.target.closest('#cron-field-panel')) return;
+    clearTimeout(timer); resetExtraResult('cron-builder');
+  });
+  form.addEventListener('submit', event => {
+    event.preventDefault(); clearTimeout(timer); resetExtraResult('cron-builder');
+    try {
+      const timezone = $('cron-builder-timezone').value;
+      const date = $('cron-builder-start').value;
+      const start = date ? new Date(toolkitCore.parseDate(date, timezone === 'UTC' ? 0 : 480)).toISOString() : undefined;
+      const state = {}; extraStates.set('cron-builder', state);
+      form.setAttribute('aria-busy', 'true'); status('cron-builder-status', '正在本地处理…');
+      runExtraWorker('cron-builder', 'cron', { expression: $('cron-generated').value, dialect: $('cron-builder-dialect').value, timezone, start }, result => {
+        renderCronPreview(result, 'cron-builder');
+        writeExtraOutput('cron-builder', result.description + '\n\n' + timezone + '\n' + result.next.map((date,i) => date + ' ' + result.weekdays[i]).join('\n'));
+        status('cron-builder-status', '已计算 7 次执行时间。');
+      }, state);
+    } catch(error) { resetExtraResult('cron-builder'); status('cron-builder-status',error.message,true); }
+  });
+  for (const id of ['cron-builder-timezone','cron-builder-start']) $(id).addEventListener('change', () => {
+    if ($('cron-generated').value) form.requestSubmit();
+  });
   load(defaults().join(' '),false);
 })();

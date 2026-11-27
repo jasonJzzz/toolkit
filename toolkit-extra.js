@@ -22,7 +22,7 @@ function resetExtraResult(route) {
     document.querySelector('[data-copy="regex-replaced"]').disabled = true;
   }
   status(route + '-status');
-  if (route === 'cron') clearCronPreview();
+  if (route === 'cron' || route === 'cron-builder') clearCronPreview(route);
 }
 
 function writeExtraOutput(route, output) {
